@@ -4,8 +4,8 @@ import { DailyTimeline } from '../src/index'
 import type { DailyTimelineHandle, TimelineEvent } from '../src/index'
 
 const INITIAL_EVENTS: TimelineEvent[] = [
-  { id: '1', title: 'Mirar los items de Heiko', startMinute: 13 * 60, durationMinutes: 120, color: '#ede9ff', category: 'Work' },
-  { id: '2', title: 'limpiar la camioneta VW', startMinute: 15 * 60, durationMinutes: 45, color: '#ede9ff', category: 'Personal' },
+  { id: '1', title: 'Project planning', startMinute: 13 * 60, durationMinutes: 120, color: '#ede9ff', category: 'Work' },
+  { id: '2', title: 'Car wash', startMinute: 15 * 60, durationMinutes: 45, color: '#ede9ff', category: 'Personal' },
   { id: '3', title: 'Team standup', startMinute: 9 * 60 + 30, durationMinutes: 30, color: '#d1fae5', category: 'Work' },
   { id: '4', title: 'Lunch', startMinute: 12 * 60, durationMinutes: 60, color: '#fef3c7', category: 'Personal' },
   { id: '5', title: 'Code review', startMinute: 13 * 60 + 30, durationMinutes: 60, color: '#dbeafe', category: 'Work' },
