@@ -1,4 +1,4 @@
-# dayslot
+# @papesce/dayslot
 
 A drag-and-drop daily timeline component for React. Drop it in, hand it events, and you get a fully interactive schedule — with overlap layout, live drag-to-move, resize, external drag-and-drop, edge-scroll, and a real-time "now" indicator. Zero runtime dependencies beyond React.
 
@@ -8,33 +8,36 @@ A drag-and-drop daily timeline component for React. Drop it in, hand it events, 
 ## Install
 
 ```bash
-npm install dayslot
+npm install @papesce/dayslot
 ```
 
 ```tsx
-import { DailyTimeline } from 'dayslot'
-import 'dayslot/dist/style.css'
+import { DailyTimeline } from '@papesce/dayslot'
+import '@papesce/dayslot/style.css'
 ```
 
 ## Quick start
 
 ```tsx
-import { DailyTimeline } from 'dayslot'
-import 'dayslot/dist/style.css'
+import { useState } from 'react'
+import { DailyTimeline } from '@papesce/dayslot'
+import '@papesce/dayslot/style.css'
 
-const events = [
+const EVENTS = [
   { id: '1', title: 'Team standup', startMinute: 9 * 60 + 30, durationMinutes: 30, color: '#d1fae5', category: 'Work' },
-  { id: '2', title: 'Lunch',         startMinute: 12 * 60,     durationMinutes: 60, color: '#fef3c7', category: 'Personal' },
-  { id: '3', title: 'Code review',   startMinute: 14 * 60,     durationMinutes: 60, color: '#dbeafe', category: 'Work' },
+  { id: '2', title: 'Lunch',        startMinute: 12 * 60,     durationMinutes: 60, color: '#fef3c7', category: 'Personal' },
+  { id: '3', title: 'Code review',  startMinute: 14 * 60,     durationMinutes: 60, color: '#dbeafe', category: 'Work' },
 ]
 
 function App() {
-  const [items, setItems] = useState(events)
+  const [events, setEvents] = useState(EVENTS)
   return (
     <DailyTimeline
-      events={items}
+      events={events}
       height="80vh"
-      onEventChange={updated => setItems(prev => prev.map(e => e.id === updated.id ? updated : e))}
+      onEventChange={updated =>
+        setEvents(prev => prev.map(e => e.id === updated.id ? updated : e))
+      }
     />
   )
 }
@@ -53,6 +56,8 @@ function App() {
 | **Now indicator** | Red line tracks the current time, updates every minute |
 | **Scroll to now / event** | Imperative handle to programmatically jump to any point |
 | **Remove events** | Optional trash button on hover |
+| **Custom card content** | `renderEventContent` injects your own UI into every event card |
+| **Inline slot creation** | `renderSlotAction` renders a form when a slot row is clicked |
 
 ## API
 
@@ -76,6 +81,8 @@ function App() {
 | `externalDragOffsetY` | `number` | `0` | Grab-point offset within the dragged card — aligns the drop preview |
 | `timelineRef` | `Ref<DailyTimelineHandle>` | — | Imperative handle ref |
 | `initialScrollTo` | `'now' \| string \| number` | `'now'` | Where to scroll on mount — `'now'`, an event id, or a minute value |
+| `renderEventContent` | `(event) => ReactNode` | — | Override the interior of every event card |
+| `renderSlotAction` | `(startMinute, close) => ReactNode` | — | Render an action UI anchored to a slot row when clicked |
 
 ### `TimelineEvent`
 
@@ -136,9 +143,44 @@ Any element with `draggable` can drop onto the timeline. Pass the payload via `d
 />
 ```
 
+### Custom event cards (`renderEventContent`)
+
+Replace the built-in card interior with your own UI. The component still handles drag, resize, and positioning — you own only the visual content:
+
+```tsx
+<DailyTimeline
+  events={events}
+  renderEventContent={event => (
+    <div>
+      <span style={{ fontWeight: 600 }}>{event.title}</span>
+      <span style={{ fontSize: 11, color: '#888' }}>{event.category}</span>
+    </div>
+  )}
+/>
+```
+
+Return `null` to fall back to the default rendering for a specific event.
+
+### Inline slot creation (`renderSlotAction`)
+
+Receive a `startMinute` and a `close()` callback when the user clicks a slot row:
+
+```tsx
+<DailyTimeline
+  events={events}
+  renderSlotAction={(startMinute, close) => (
+    <form onSubmit={e => { e.preventDefault(); addEvent(startMinute); close() }}>
+      <input autoFocus placeholder="New task…" />
+      <button type="submit">Add</button>
+      <button type="button" onClick={close}>Cancel</button>
+    </form>
+  )}
+/>
+```
+
 ## Styling
 
-Import `dayslot/dist/style.css` for the default theme. All classes use the `ds-timeline` prefix — override any of them in your own stylesheet.
+Import `@papesce/dayslot/style.css` for the default theme. All classes use the `ds-timeline` prefix — override any in your own stylesheet.
 
 ## License
 

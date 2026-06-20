@@ -53,6 +53,8 @@ function DailyTimelineInner({
   externalDragOffsetY = 0,
   timelineRef,
   initialScrollTo = 'now',
+  renderEventContent,
+  renderSlotAction,
 }: DailyTimelineProps) {
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i)
   const timelineStartMinute = startHour * 60
@@ -89,6 +91,7 @@ function DailyTimelineInner({
   const dragClientYRef = useRef<number>(0)
   const [dropTarget, setDropTarget] = useState(false)
   const [dropMinute, setDropMinute] = useState<number | null>(null)
+  const [activeSlotMinute, setActiveSlotMinute] = useState<number | null>(null)
 
   const minuteToScrollTop = useCallback((minute: number) => {
     const clampedMinute = Math.max(startHour * 60, Math.min(endHour * 60, minute))
@@ -289,15 +292,38 @@ function DailyTimelineInner({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          {hours.map(h => (
-            <div
-              key={h}
-              className="ds-timeline__row"
-              style={{ height: hourHeight, position: 'absolute', top: (h - startHour) * hourHeight, left: 0, right: 0 }}
-            >
-              <span className="ds-timeline__hour-label">{formatHour(h)}</span>
-            </div>
-          ))}
+          {hours.map(h => {
+            const slotMinute = h * 60
+            const isActiveSlot = activeSlotMinute === slotMinute
+            return (
+              <div
+                key={h}
+                className="ds-timeline__row"
+                style={{ height: hourHeight, position: 'absolute', top: (h - startHour) * hourHeight, left: 0, right: 0 }}
+                onClick={() => {
+                  if (renderSlotAction) setActiveSlotMinute(isActiveSlot ? null : slotMinute)
+                }}
+              >
+                <span className="ds-timeline__hour-label">{formatHour(h)}</span>
+                {renderSlotAction && (
+                  <div className="ds-timeline__slot-action" onClick={e => e.stopPropagation()}>
+                    {isActiveSlot
+                      ? renderSlotAction(slotMinute, () => setActiveSlotMinute(null))
+                      : (
+                        <button
+                          className="ds-timeline__slot-add"
+                          onPointerDown={e => e.stopPropagation()}
+                          onClick={e => { e.stopPropagation(); setActiveSlotMinute(slotMinute) }}
+                        >
+                          +
+                        </button>
+                      )
+                    }
+                  </div>
+                )}
+              </div>
+            )
+          })}
 
           {nowMinute >= timelineStartMinute && nowMinute <= timelineEndMinute && (
             <div
@@ -338,38 +364,45 @@ function DailyTimelineInner({
                   onPointerDown={e => startDrag(e, 'move', event)}
                   onClick={() => { if (!didDrag.current) onEventClick?.(event) }}
                 >
-                  {onEventRemove && (
-                    <button
-                      className="ds-timeline__event-remove"
-                      onPointerDown={e => e.stopPropagation()}
-                      onClick={e => { e.stopPropagation(); onEventRemove(event) }}
-                      aria-label="Remove event"
-                    >
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                        <path d="M10 11v6M14 11v6" />
-                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                      </svg>
-                    </button>
-                  )}
-                  <div className="ds-timeline__event-title">{event.title}</div>
-                  {(event.category || event.durationMinutes) && (
-                    <div className="ds-timeline__event-meta">
-                      {event.category && (
-                        <span className="ds-timeline__event-category">
-                          <span
-                            className="ds-timeline__event-dot"
-                            style={{ background: event.color ? darken(event.color) : '#7c6fcd' }}
-                          />
-                          {event.category}
-                        </span>
-                      )}
-                      <span className="ds-timeline__event-duration">
-                        {formatDuration(event.durationMinutes)}
-                      </span>
-                    </div>
-                  )}
+                  {renderEventContent
+                    ? renderEventContent(event)
+                    : (
+                      <>
+                        {onEventRemove && (
+                          <button
+                            className="ds-timeline__event-remove"
+                            onPointerDown={e => e.stopPropagation()}
+                            onClick={e => { e.stopPropagation(); onEventRemove(event) }}
+                            aria-label="Remove event"
+                          >
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                              <path d="M10 11v6M14 11v6" />
+                              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                            </svg>
+                          </button>
+                        )}
+                        <div className="ds-timeline__event-title">{event.title}</div>
+                        {(event.category || event.durationMinutes) && (
+                          <div className="ds-timeline__event-meta">
+                            {event.category && (
+                              <span className="ds-timeline__event-category">
+                                <span
+                                  className="ds-timeline__event-dot"
+                                  style={{ background: event.color ? darken(event.color) : '#7c6fcd' }}
+                                />
+                                {event.category}
+                              </span>
+                            )}
+                            <span className="ds-timeline__event-duration">
+                              {formatDuration(event.durationMinutes)}
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    )
+                  }
                   {/* Resize handle */}
                   <div
                     className="ds-timeline__resize-handle"

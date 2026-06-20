@@ -47,4 +47,9 @@ export interface DailyTimelineProps {
   timelineRef?: React.Ref<DailyTimelineHandle>
   /** Auto-scroll target on mount: 'now', an event id, or a minute number (default 'now') */
   initialScrollTo?: 'now' | string | number
+  /** Override the interior of an event card. Receives the event; return null to use default rendering. */
+  renderEventContent?: (event: TimelineEvent) => React.ReactNode
+  /** Render an action UI anchored to an hour slot (e.g. inline task-creation form).
+   *  Receives the slot's startMinute and a close() callback. Return null to render nothing. */
+  renderSlotAction?: (startMinute: number, close: () => void) => React.ReactNode
 }

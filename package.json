@@ -1,16 +1,18 @@
 {
-  "name": "dayslot",
+  "name": "@papesce/dayslot",
   "version": "0.1.0",
   "description": "Embeddable drag-and-drop daily timeline React component",
   "type": "module",
   "main": "./dist/dayslot.umd.cjs",
   "module": "./dist/dayslot.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/dayslot.js",
-      "require": "./dist/dayslot.umd.cjs"
+      "require": "./dist/dayslot.umd.cjs",
+      "types": "./dist/index.d.ts"
     },
-    "./dist/style.css": "./dist/style.css"
+    "./style.css": "./dist/style.css"
   },
   "keywords": ["react", "timeline", "calendar", "drag-drop", "scheduler", "daily-planner"],
   "repository": {
@@ -18,11 +20,15 @@
     "url": "https://github.com/papesce/dayslot"
   },
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": ["dist"],
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "vite build && npx tsc -p tsconfig.build.json",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
     "react": ">=18",

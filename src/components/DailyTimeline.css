@@ -93,6 +93,34 @@
   min-height: 0;
 }
 
+.ds-timeline__slot-action {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  padding: 6px 8px 0;
+  min-width: 0;
+}
+
+.ds-timeline__slot-add {
+  opacity: 0;
+  background: none;
+  border: none;
+  color: #b0b0c8;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.ds-timeline__row:hover .ds-timeline__slot-add {
+  opacity: 1;
+}
+
+.ds-timeline__slot-add:hover {
+  color: #7c6fcd;
+}
+
 /* Absolute-positioned events layer */
 .ds-timeline__events {
   position: absolute;
