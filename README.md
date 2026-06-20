@@ -2,7 +2,7 @@
 
 A drag-and-drop daily timeline component for React. Drop it in, hand it events, and you get a fully interactive schedule — with overlap layout, live drag-to-move, resize, external drag-and-drop, edge-scroll, and a real-time "now" indicator. Zero runtime dependencies beyond React.
 
-<img width="926" height="1032" alt="Screenshot 2026-06-19 at 7 24 35 PM" src="https://github.com/user-attachments/assets/f5dc5186-0b08-4408-9f49-235d7c4849c6" />
+<img width="1142" height="983" alt="Screenshot 2026-06-20 at 9 48 47 AM" src="https://github.com/user-attachments/assets/60b9bcc3-d6c9-4772-908d-470a52033205" />
 
 
 ## Install
