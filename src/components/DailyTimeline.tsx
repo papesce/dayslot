@@ -55,6 +55,7 @@ function DailyTimelineInner({
   initialScrollTo = 'now',
   renderEventContent,
   renderSlotAction,
+  showCurrentTime = true,
 }: DailyTimelineProps) {
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i)
   const timelineStartMinute = startHour * 60
@@ -325,7 +326,7 @@ function DailyTimelineInner({
             )
           })}
 
-          {nowMinute >= timelineStartMinute && nowMinute <= timelineEndMinute && (
+          {showCurrentTime && nowMinute >= timelineStartMinute && nowMinute <= timelineEndMinute && (
             <div
               className="ds-timeline__now"
               style={{ top: ((nowMinute - timelineStartMinute) / 60) * hourHeight }}

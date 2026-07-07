@@ -1,6 +1,6 @@
 {
   "name": "@papesce/dayslot",
-  "version": "0.1.0",
+  "version": "0.3.1",
   "description": "Embeddable drag-and-drop daily timeline React component",
   "type": "module",
   "main": "./dist/dayslot.umd.cjs",
@@ -14,16 +14,25 @@
     },
     "./style.css": "./dist/style.css"
   },
-  "keywords": ["react", "timeline", "calendar", "drag-drop", "scheduler", "daily-planner"],
+  "keywords": [
+    "react",
+    "timeline",
+    "calendar",
+    "drag-drop",
+    "scheduler",
+    "daily-planner"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/papesce/dayslot"
+    "url": "git+https://github.com/papesce/dayslot.git"
   },
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build && npx tsc -p tsconfig.build.json",
