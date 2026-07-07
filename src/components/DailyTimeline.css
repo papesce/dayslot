@@ -145,7 +145,7 @@
 .ds-timeline__event {
   position: absolute;
   border-radius: 10px;
-  padding: 8px 10px 16px;
+  padding: 6px 10px;
   box-sizing: border-box;
   pointer-events: all;
   cursor: grab;
