@@ -52,4 +52,6 @@ export interface DailyTimelineProps {
   /** Render an action UI anchored to an hour slot (e.g. inline task-creation form).
    *  Receives the slot's startMinute and a close() callback. Return null to render nothing. */
   renderSlotAction?: (startMinute: number, close: () => void) => React.ReactNode
+  /** Show the current-time indicator line (default true) */
+  showCurrentTime?: boolean
 }
