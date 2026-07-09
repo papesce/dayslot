@@ -83,6 +83,8 @@ function App() {
 | `initialScrollTo` | `'now' \| string \| number` | `'now'` | Where to scroll on mount — `'now'`, an event id, or a minute value |
 | `renderEventContent` | `(event) => ReactNode` | — | Override the interior of every event card |
 | `renderSlotAction` | `(startMinute, close) => ReactNode` | — | Render an action UI anchored to a slot row when clicked |
+| `slotActionTrigger` | `'row' \| 'button' \| 'both'` | `'both'` | What triggers the slot action — row click, + button, or both |
+| `showCurrentTime` | `boolean` | `true` | Show or hide the current-time indicator line |
 
 ### `TimelineEvent`
 
