@@ -55,6 +55,7 @@ function DailyTimelineInner({
   initialScrollTo = 'now',
   renderEventContent,
   renderSlotAction,
+  slotActionTrigger = 'both',
   showCurrentTime = true,
 }: DailyTimelineProps) {
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i)
@@ -302,15 +303,21 @@ function DailyTimelineInner({
                 className="ds-timeline__row"
                 style={{ height: hourHeight, position: 'absolute', top: (h - startHour) * hourHeight, left: 0, right: 0 }}
                 onClick={() => {
-                  if (renderSlotAction) setActiveSlotMinute(isActiveSlot ? null : slotMinute)
+                  if (renderSlotAction && slotActionTrigger !== 'button') {
+                    setActiveSlotMinute(isActiveSlot ? null : slotMinute)
+                  }
                 }}
               >
                 <span className="ds-timeline__hour-label">{formatHour(h)}</span>
                 {renderSlotAction && (
-                  <div className="ds-timeline__slot-action" onClick={e => e.stopPropagation()}>
-                    {isActiveSlot
-                      ? renderSlotAction(slotMinute, () => setActiveSlotMinute(null))
-                      : (
+                  <>
+                    {isActiveSlot && (
+                      <div className="ds-timeline__slot-action" onClick={e => e.stopPropagation()}>
+                        {renderSlotAction(slotMinute, () => setActiveSlotMinute(null))}
+                      </div>
+                    )}
+                    {!isActiveSlot && slotActionTrigger !== 'row' && (
+                      <div className="ds-timeline__slot-action" onClick={e => e.stopPropagation()}>
                         <button
                           className="ds-timeline__slot-add"
                           onPointerDown={e => e.stopPropagation()}
@@ -318,9 +325,9 @@ function DailyTimelineInner({
                         >
                           +
                         </button>
-                      )
-                    }
-                  </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )
