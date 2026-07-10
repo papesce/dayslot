@@ -85,6 +85,7 @@ function App() {
 | `renderSlotAction` | `(startMinute, close) => ReactNode` | — | Render an action UI anchored to a slot row when clicked |
 | `slotActionTrigger` | `'row' \| 'button' \| 'both'` | `'both'` | What triggers the slot action — row click, + button, or both |
 | `showCurrentTime` | `boolean` | `true` | Show or hide the current-time indicator line |
+| `slotIntervalMinutes` | `number` | `60` | Minutes per slot row. Use `15`, `30`, `60`, or `120` (must divide 60 or be a multiple of 60). |
 
 ### `TimelineEvent`
 

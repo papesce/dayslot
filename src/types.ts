@@ -57,4 +57,6 @@ export interface DailyTimelineProps {
   slotActionTrigger?: 'row' | 'button' | 'both'
   /** Show the current-time indicator line (default true) */
   showCurrentTime?: boolean
+  /** Minutes per slot row. Must divide 60 or be a multiple of 60. Default: 60. */
+  slotIntervalMinutes?: number
 }

@@ -460,6 +460,7 @@ function App() {
   const [log, setLog] = useState<LogEntry[]>([])
   const [startHour, setStartHour] = useState(7)
   const [endHour, setEndHour] = useState(20)
+  const [slotInterval, setSlotInterval] = useState(60)
   const [draggingDuration, setDraggingDuration] = useState<number | undefined>()
   const [draggingOffsetY, setDraggingOffsetY] = useState(0)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
@@ -628,6 +629,14 @@ function App() {
           }}>
             <HourSelect label="Start" value={startHour} onChange={v => setStartHour(Math.min(v, endHour - 1))} />
             <HourSelect label="End" value={endHour} onChange={v => setEndHour(Math.max(v, startHour + 1))} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#444' }}>
+              <span style={{ minWidth: 70 }}>Slot</span>
+              <select value={slotInterval} onChange={e => setSlotInterval(Number(e.target.value))} style={{
+                border: '1px solid #ddd', borderRadius: 8, padding: '4px 8px', fontSize: 13, background: '#fff', cursor: 'pointer',
+              }}>
+                {[15, 30, 60, 120].map(v => <option key={v} value={v}>{v}m</option>)}
+              </select>
+            </label>
           </div>
 
           {/* scroll controls */}
@@ -658,6 +667,7 @@ function App() {
             endHour={endHour}
             hourHeight={80}
             snapMinutes={15}
+            slotIntervalMinutes={slotInterval}
             height="80vh"
             title="Daily Timeline"
             onEventChange={handleChange}

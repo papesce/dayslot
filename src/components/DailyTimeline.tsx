@@ -13,6 +13,14 @@ function formatHour(h: number) {
   return `${h - 12}pm`
 }
 
+function formatSlotLabel(minutes: number) {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (m === 0) return formatHour(h)
+  const display = h > 12 ? h - 12 : h === 0 ? 12 : h
+  return `${display}:${String(m).padStart(2, '0')}`
+}
+
 function formatDuration(minutes: number) {
   if (minutes < 60) return `${minutes}m`
   const h = Math.floor(minutes / 60)
@@ -57,11 +65,18 @@ function DailyTimelineInner({
   renderSlotAction,
   slotActionTrigger = 'both',
   showCurrentTime = true,
+  slotIntervalMinutes = 60,
 }: DailyTimelineProps) {
-  const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i)
+  const interval = slotIntervalMinutes > 0 ? slotIntervalMinutes : 60
+  if (60 % interval !== 0 && interval % 60 !== 0) {
+    console.warn(`slotIntervalMinutes=${interval} should divide 60 or be a multiple of 60.`)
+  }
+  const slotCount = Math.round(((endHour - startHour) * 60) / interval)
+  const slots = Array.from({ length: slotCount }, (_, i) => startHour * 60 + i * interval)
+  const slotHeight = hourHeight * (interval / 60)
   const timelineStartMinute = startHour * 60
   const timelineEndMinute = endHour * 60
-  const totalHeight = (endHour - startHour) * hourHeight
+  const totalHeight = slotCount * slotHeight
 
   // Live override while dragging — applied on top of `events` prop
   const [liveOverride, setLiveOverride] = useState<Partial<TimelineEvent> & { id: string } | null>(null)
@@ -294,21 +309,20 @@ function DailyTimelineInner({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          {hours.map(h => {
-            const slotMinute = h * 60
+          {slots.map(slotMinute => {
             const isActiveSlot = activeSlotMinute === slotMinute
             return (
               <div
-                key={h}
+                key={slotMinute}
                 className="ds-timeline__row"
-                style={{ height: hourHeight, position: 'absolute', top: (h - startHour) * hourHeight, left: 0, right: 0 }}
+                style={{ height: slotHeight, position: 'absolute', top: (slotMinute - startHour * 60) / 60 * hourHeight, left: 0, right: 0 }}
                 onClick={() => {
                   if (renderSlotAction && slotActionTrigger !== 'button') {
                     setActiveSlotMinute(isActiveSlot ? null : slotMinute)
                   }
                 }}
               >
-                <span className="ds-timeline__hour-label">{formatHour(h)}</span>
+                <span className="ds-timeline__hour-label">{formatSlotLabel(slotMinute)}</span>
                 {renderSlotAction && (
                   <>
                     {isActiveSlot && (

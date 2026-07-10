@@ -1,6 +1,6 @@
 {
   "name": "@papesce/dayslot",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Embeddable drag-and-drop daily timeline React component",
   "type": "module",
   "main": "./dist/dayslot.umd.cjs",
@@ -31,7 +31,8 @@
     "access": "public"
   },
   "files": [
-    "dist"
+    "dist",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "dev": "vite",
