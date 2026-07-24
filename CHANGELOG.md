@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.3] - 2026-07-24
+
+### Changed
+- Event card padding is now controlled by the `--ds-event-padding` CSS custom property (default `6px 10px`), allowing consuming apps to override in one place: `.ds-timeline { --ds-event-padding: 0; }`.
+
 ## [0.5.2] - 2026-07-24
 
 ### Changed

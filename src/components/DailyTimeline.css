@@ -1,5 +1,6 @@
 .ds-timeline {
   --ds-hour-col: 52px;
+  --ds-event-padding: 6px 10px;
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
@@ -195,7 +196,7 @@
 .ds-timeline__event {
   position: absolute;
   border-radius: 10px;
-  padding: 6px 10px;
+  padding: var(--ds-event-padding);
   box-sizing: border-box;
   pointer-events: all;
   cursor: grab;
