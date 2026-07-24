@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.2] - 2026-07-24
+
+### Changed
+- Time-axis gutter width is now controlled by the `--ds-hour-col` CSS custom property (default `52px`), allowing consuming apps to override both label width and event offset with a single rule: `.ds-timeline { --ds-hour-col: 72px; }`.
+
+## [0.5.1] - 2026-07-24
+
+### Changed
+- Time-axis gutter redesigned following Apple HIG: hour labels are bold/dark, subdivision labels are muted, gridlines start after the gutter via `::after` pseudo-element so lines never cross label text.
+
 ## [0.5.0] - 2026-07-23
 
 ### Added
