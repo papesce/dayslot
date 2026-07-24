@@ -1,4 +1,5 @@
 .ds-timeline {
+  --ds-hour-col: 52px;
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
@@ -55,7 +56,7 @@
   border-radius: 50%;
   background: #ef4444;
   flex-shrink: 0;
-  margin-left: 47px;
+  margin-left: calc(var(--ds-hour-col) - 5px);
 }
 
 .ds-timeline__now-line {
@@ -82,15 +83,15 @@
   content: '';
   position: absolute;
   bottom: 0;
-  left: 52px;
+  left: var(--ds-hour-col);
   right: 0;
   height: 1px;
   background: rgba(0, 0, 0, 0.15);
 }
 
 .ds-timeline__hour-label {
-  width: 52px;
-  min-width: 52px;
+  width: var(--ds-hour-col);
+  min-width: var(--ds-hour-col);
   padding: 0 8px 0 14px;
   font-size: 12px;
   font-weight: 700;
@@ -108,7 +109,7 @@
 
 .ds-timeline__marker {
   position: absolute;
-  left: 52px;
+  left: var(--ds-hour-col);
   right: 0;
   height: 0;
   border-top: 0.5px solid rgba(0, 0, 0, 0.08);
@@ -119,8 +120,8 @@
 }
 
 .ds-timeline__marker-label {
-  width: 52px;
-  min-width: 52px;
+  width: var(--ds-hour-col);
+  min-width: var(--ds-hour-col);
   padding: 0 8px 0 16px;
   font-size: 11px;
   color: rgba(142, 142, 147, 0.45);
@@ -128,7 +129,7 @@
   line-height: 11px;
   position: absolute;
   top: -5px;
-  left: -52px;
+  left: calc(-1 * var(--ds-hour-col));
   user-select: none;
 }
 
@@ -174,7 +175,7 @@
 .ds-timeline__events {
   position: absolute;
   top: 0;
-  left: 52px;
+  left: var(--ds-hour-col);
   right: 0;
   bottom: 0;
   pointer-events: none;

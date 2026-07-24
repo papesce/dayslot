@@ -368,7 +368,7 @@ function DailyTimelineInner({
                           position: 'absolute',
                           top: `${((activeSlotMinute - slotMinute) / slotMinutes) * 100}%`,
                           height: `${100 / subdivisions}%`,
-                          left: 52,
+                          left: 'var(--ds-hour-col)',
                           right: 0,
                         }}
                         onClick={e => e.stopPropagation()}
@@ -384,7 +384,7 @@ function DailyTimelineInner({
                           <div
                             key={actionMinute}
                             className="ds-timeline__slot-action"
-                            style={{ position: 'absolute', top: `${topPct}%`, height: `${100 / subdivisions}%`, left: 52, right: 0 }}
+                            style={{ position: 'absolute', top: `${topPct}%`, height: `${100 / subdivisions}%`, left: 'var(--ds-hour-col)', right: 0 }}
                             onMouseEnter={() => setHoveredActionMinute(actionMinute)}
                             onMouseLeave={() => setHoveredActionMinute(null)}
                             onClick={e => e.stopPropagation()}
