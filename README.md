@@ -88,6 +88,7 @@ function App() {
 | `slotMinutes` | `number` | `60` | Primary time division — grid rows, hour labels, and border lines. Use `15`, `30`, `60`, or `120` (must divide 60 or be a multiple of 60). |
 | `showMarkers` | `'none' \| 'hover' \| 'always'` | auto | Show divider lines at subdivision boundaries (where `slotMinutes / snapMinutes > 1`). Defaults to `'always'` when subdivisions > 1, `'none'` otherwise. |
 | `showLabels` | `boolean` | `false` | Show time labels on subdivision divider lines. |
+| `onScroll` | `(scrollTop: number) => void` | — | Called when the timeline body scrolls. Useful for dismissing overlay UI (menus, pickers). |
 
 ### `TimelineEvent`
 
@@ -115,6 +116,9 @@ ref.current?.scrollToEvent('event-id')
 
 // scroll to an arbitrary minute value
 ref.current?.scrollToMinute(14 * 60) // 2pm
+
+// access the scroll container (e.g. to attach a scroll listener)
+ref.current?.scrollElement?.addEventListener('scroll', handler)
 
 <DailyTimeline ... timelineRef={ref} />
 ```

@@ -68,6 +68,7 @@ function DailyTimelineInner({
   slotMinutes: slotMinutesProp,
   showMarkers: showMarkersProp,
   showLabels = false,
+  onScroll: onScrollProp,
 }: DailyTimelineProps) {
   const slotMinutes = slotMinutesProp != null && slotMinutesProp > 0 ? slotMinutesProp : 60
   if (60 % slotMinutes !== 0 && slotMinutes % 60 !== 0) {
@@ -139,7 +140,7 @@ function DailyTimelineInner({
     if (ev) scrollToMinute(ev.startMinute)
   }, [events, scrollToMinute])
 
-  useImperativeHandle(timelineRef, () => ({ scrollToNow, scrollToEvent, scrollToMinute }), [scrollToNow, scrollToEvent, scrollToMinute])
+  useImperativeHandle(timelineRef, () => ({ scrollToNow, scrollToEvent, scrollToMinute, scrollElement: bodyRef.current }), [scrollToNow, scrollToEvent, scrollToMinute])
 
   // scroll on mount
   useEffect(() => {
@@ -158,6 +159,15 @@ function DailyTimelineInner({
     body.scrollTop = minuteToScrollTop(target)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // onScroll callback
+  useEffect(() => {
+    const el = bodyRef.current
+    if (!el || !onScrollProp) return
+    const handler = () => onScrollProp(el.scrollTop)
+    el.addEventListener('scroll', handler, { passive: true })
+    return () => el.removeEventListener('scroll', handler)
+  }, [onScrollProp])
 
   const startEdgeScroll = useCallback(() => {
     if (scrollRafRef.current !== null) return
@@ -351,9 +361,19 @@ function DailyTimelineInner({
                 })}
                 {renderSlotAction && (
                   <>
-                    {isActiveSlot && (
-                      <div className="ds-timeline__slot-action ds-timeline__slot-action--active" onClick={e => e.stopPropagation()}>
-                        {renderSlotAction(activeSlotMinute!, () => setActiveSlotMinute(null))}
+                    {isActiveSlot && activeSlotMinute != null && (
+                      <div
+                        className="ds-timeline__slot-action ds-timeline__slot-action--active"
+                        style={{
+                          position: 'absolute',
+                          top: `${((activeSlotMinute - slotMinute) / slotMinutes) * 100}%`,
+                          height: `${100 / subdivisions}%`,
+                          left: 52,
+                          right: 0,
+                        }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        {renderSlotAction(activeSlotMinute, () => setActiveSlotMinute(null))}
                       </div>
                     )}
                     {!isActiveSlot && slotActionTrigger !== 'row' && (

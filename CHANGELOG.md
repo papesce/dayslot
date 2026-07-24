@@ -5,15 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-07-23
+
+### Added
+- `showMarkers` prop — control subdivision gridline visibility (`'none'` | `'hover'` | `'always'`).
+- `showLabels` prop — show time labels on subdivision gridlines.
+- `scrollElement` on `DailyTimelineHandle` — exposes the scroll container for attaching listeners or calculating scroll-aware portal positions.
+- `onScroll` callback prop — notified when the timeline body scrolls; useful for dismissing overlay UI.
+
+### Changed
+- Time-axis gutter redesigned following Apple HIG: hour labels are bold/dark, subdivision labels are muted, gridlines start after the gutter via `::after` pseudo-element so lines never cross label text.
+- Prop `slotIntervalMinutes` renamed to `slotMinutes`.
+
+### Fixed
+- Active slot action (dialog opened via + button) now positions precisely at the clicked subdivision line instead of defaulting to the row top.
+
 ## [0.4.1] - 2026-07-15
 
 ### Fixed
 - Add `user-select: none` to timeline root to prevent drag conflicts.
-
-## [0.5.0] - 2026-07-23
-
-### Added
-- `slotActionIntervalMinutes` prop — decouple + button / `renderSlotAction` granularity from grid row interval. Defaults to `slotIntervalMinutes` (backward-compatible). Use this to show finer-grained + buttons (e.g. every 15 min) while keeping wider grid rows (e.g. 30 min).
 
 ## [0.4.0] - 2026-07-10
 

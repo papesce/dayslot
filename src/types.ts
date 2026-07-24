@@ -16,6 +16,9 @@ export interface DailyTimelineHandle {
   scrollToEvent: (eventId: string) => void
   /** Scroll to an arbitrary minute value */
   scrollToMinute: (minute: number) => void
+  /** The scrollable timeline body element. Useful for attaching scroll
+   *  listeners to dismiss overlay UI or calculating scroll-aware portal positions. */
+  scrollElement: HTMLDivElement | null
 }
 
 export interface DailyTimelineProps {
@@ -66,4 +69,7 @@ export interface DailyTimelineProps {
   showMarkers?: 'none' | 'hover' | 'always'
   /** Show time labels on subdivision divider lines. Default: false. */
   showLabels?: boolean
+  /** Called when the timeline body scrolls. Receives the current scrollTop.
+   *  Useful for dismissing overlay UI (menus, pickers) on scroll. */
+  onScroll?: (scrollTop: number) => void
 }
