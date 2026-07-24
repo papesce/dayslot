@@ -3,15 +3,11 @@ import { createRoot } from 'react-dom/client'
 import { DailyTimeline } from '../src/index'
 import type { DailyTimelineHandle, TimelineEvent } from '../src/index'
 
-// ─── shared data ────────────────────────────────────────────────────────────
+// ─── types ────────────────────────────────────────────────────────────────────
 
-const INITIAL_EVENTS: TimelineEvent[] = [
-  { id: '1', title: 'Project planning', startMinute: 13 * 60, durationMinutes: 120, color: '#ede9ff', category: 'work' },
-  { id: '2', title: 'Car wash', startMinute: 15 * 60, durationMinutes: 45, color: '#fce7f3', category: 'life' },
-  { id: '3', title: 'Team standup', startMinute: 9 * 60 + 30, durationMinutes: 30, color: '#d1fae5', category: 'work' },
-  { id: '4', title: 'Lunch', startMinute: 12 * 60, durationMinutes: 60, color: '#fef3c7', category: 'health' },
-  { id: '5', title: 'Code review', startMinute: 13 * 60 + 30, durationMinutes: 60, color: '#dbeafe', category: 'work' },
-]
+interface ExtendedEvent extends TimelineEvent {
+  status?: 'pending' | 'completed' | 'cancelled'
+}
 
 interface BacklogItem {
   id: string
@@ -19,17 +15,26 @@ interface BacklogItem {
   durationMinutes: number
   color: string
   category: string
-  status?: 'pending' | 'completed' | 'cancelled'
 }
 
-const INITIAL_BACKLOG: BacklogItem[] = [
-  { id: 'b1', title: 'Write unit tests', durationMinutes: 60, color: '#dbeafe', category: 'work' },
-  { id: 'b2', title: 'Grocery run', durationMinutes: 30, color: '#fef3c7', category: 'life' },
-  { id: 'b3', title: 'Read emails', durationMinutes: 15, color: '#d1fae5', category: 'work' },
-  { id: 'b4', title: 'Exercise', durationMinutes: 45, color: '#fce7f3', category: 'health' },
+// ─── data ─────────────────────────────────────────────────────────────────────
+
+const INITIAL_EVENTS: ExtendedEvent[] = [
+  { id: '1', title: 'Sprint planning', startMinute: 9*60, durationMinutes: 60, color: '#ede9ff', category: 'work' },
+  { id: '2', title: 'Standup', startMinute: 9*60+30, durationMinutes: 30, color: '#ede9ff', category: 'work' },
+  { id: '3', title: 'Code review', startMinute: 10*60, durationMinutes: 90, color: '#dbeafe', category: 'growth' },
+  { id: '4', title: 'Pair programming', startMinute: 10*60, durationMinutes: 60, color: '#ede9ff', category: 'work' },
+  { id: '5', title: 'Lunch', startMinute: 12*60, durationMinutes: 60, color: '#fef3c7', category: 'life' },
+  { id: '6', title: 'Deep work', startMinute: 13*60, durationMinutes: 120, color: '#ede9ff', category: 'work' },
+  { id: '7', title: '1:1 with manager', startMinute: 15*60, durationMinutes: 30, color: '#fce7f3', category: 'relationships' },
+  { id: '8', title: 'Gym', startMinute: 17*60, durationMinutes: 60, color: '#d1fae5', category: 'health' },
 ]
 
-// ─── area colours (mirrors balanced-work-life tokens) ───────────────────────
+const INITIAL_BACKLOG: BacklogItem[] = [
+  { id: 'b1', title: 'Write unit tests', durationMinutes: 45, color: '#dbeafe', category: 'growth' },
+  { id: 'b2', title: 'Grocery run', durationMinutes: 30, color: '#fef3c7', category: 'life' },
+  { id: 'b3', title: 'Exercise', durationMinutes: 45, color: '#d1fae5', category: 'health' },
+]
 
 const AREA_COLORS: Record<string, { bg: string; dot: string }> = {
   work:          { bg: '#ede9ff', dot: '#7c6fcd' },
@@ -46,12 +51,10 @@ const AREA_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#7c6fcd',
-  completed: '#10b981',
-  cancelled: '#9ca3af',
+  pending: '#7c6fcd', completed: '#10b981', cancelled: '#9ca3af',
 }
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
+// ─── helpers ──────────────────────────────────────────────────────────────────
 
 function formatMin(m: number) {
   const h = Math.floor(m / 60)
@@ -68,72 +71,60 @@ function formatDur(m: number) {
 }
 
 let logId = 0
-let nextId = 10
-
+let nextId = 100
 const HOURS = Array.from({ length: 24 }, (_, i) => i)
 
-// ─── small shared components ─────────────────────────────────────────────────
+// ─── small components ─────────────────────────────────────────────────────────
 
-function HourSelect({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+function HourSelect({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
-    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#444' }}>
-      <span style={{ minWidth: 70 }}>{label}</span>
-      <select value={value} onChange={e => onChange(Number(e.target.value))} style={{
-        border: '1px solid #ddd', borderRadius: 8, padding: '4px 8px', fontSize: 13, background: '#fff', cursor: 'pointer',
-      }}>
-        {HOURS.map(h => (
-          <option key={h} value={h}>
-            {h === 0 ? '12am' : h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h - 12}pm`}
-          </option>
-        ))}
-      </select>
-    </label>
+    <select value={value} onChange={e => onChange(Number(e.target.value))} style={{
+      border: '1px solid #e0e0f0', borderRadius: 8, padding: '4px 8px',
+      fontSize: 12, background: '#fff', cursor: 'pointer', color: '#333',
+    }}>
+      {HOURS.map(h => (
+        <option key={h} value={h}>
+          {h === 0 ? '12am' : h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h - 12}pm`}
+        </option>
+      ))}
+    </select>
   )
 }
 
-function BacklogCard({
-  item, onDragStart, onDragEnd,
-}: { item: BacklogItem; onDragStart: (grabOffsetY: number) => void; onDragEnd: () => void }) {
+function BacklogCard({ item, onDragStart, onDragEnd }: {
+  item: BacklogItem
+  onDragStart: (offsetY: number) => void
+  onDragEnd: () => void
+}) {
+  const dot = AREA_COLORS[item.category]?.dot ?? '#7c6fcd'
+  const bg = AREA_COLORS[item.category]?.bg ?? '#ede9ff'
   return (
     <div
       draggable
       onDragStart={e => {
-        const offsetY = e.clientY - (e.currentTarget as HTMLElement).getBoundingClientRect().top
+        const offsetY = e.clientY - e.currentTarget.getBoundingClientRect().top
         e.dataTransfer.setData('text/plain', JSON.stringify({ id: item.id, offsetY }))
         onDragStart(offsetY)
       }}
       onDragEnd={onDragEnd}
       style={{
-        background: AREA_COLORS[item.category]?.bg ?? '#ede9ff',
-        borderRadius: 10, padding: '8px 12px', cursor: 'grab',
-        userSelect: 'none', display: 'flex', flexDirection: 'column', gap: 4,
+        background: bg, borderRadius: 8, padding: '7px 10px',
+        cursor: 'grab', userSelect: 'none',
+        display: 'flex', alignItems: 'center', gap: 8,
+        border: '1px solid rgba(0,0,0,0.05)',
       }}
     >
-      <span style={{ fontSize: 13, fontWeight: 600, color: '#1a1a2e' }}>{item.title}</span>
-      <span style={{ fontSize: 11, color: '#666' }}>{AREA_LABELS[item.category] ?? item.category} · {formatDur(item.durationMinutes)}</span>
+      <span style={{ width: 7, height: 7, borderRadius: '50%', background: dot, flexShrink: 0 }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: '#1a1a2e', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</div>
+        <div style={{ fontSize: 10, color: '#888', marginTop: 1 }}>{formatDur(item.durationMinutes)}</div>
+      </div>
+      <span style={{ fontSize: 14, color: '#bbb', lineHeight: 1 }}>⠿</span>
     </div>
   )
 }
 
-function scrollBtnStyle(bg: string): React.CSSProperties {
-  return {
-    background: bg, border: 'none', borderRadius: 8, padding: '4px 10px',
-    fontSize: 12, fontWeight: 600, color: '#1a1a2e', cursor: 'pointer', whiteSpace: 'nowrap',
-  }
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{
-      fontSize: 11, fontWeight: 700, letterSpacing: '0.08em',
-      textTransform: 'uppercase', color: '#999', marginBottom: 4,
-    }}>
-      {children}
-    </div>
-  )
-}
-
-// ─── event log ───────────────────────────────────────────────────────────────
+// ─── event log ────────────────────────────────────────────────────────────────
 
 interface LogEntry { id: number; type: 'click' | 'change' | 'drop' | 'remove' | 'create'; message: string }
 
@@ -141,124 +132,155 @@ const LOG_COLORS: Record<LogEntry['type'], string> = {
   click: '#7c6fcd', change: '#34d399', drop: '#f59e0b', remove: '#f87171', create: '#38bdf8',
 }
 
-function EventLog({ log, onClear }: { log: LogEntry[]; onClear: () => void }) {
+function EventLog({ log, onClear, collapsed, onToggle }: {
+  log: LogEntry[]; onClear: () => void; collapsed: boolean; onToggle: () => void
+}) {
   return (
-    <div style={{
-      width: '100%', maxWidth: 280, background: '#1e1e2e', borderRadius: 12,
-      overflow: 'hidden', fontFamily: 'ui-monospace, monospace', fontSize: 12,
-      boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
-    }}>
+    <div style={{ background: '#1e1e2e', borderRadius: 10, overflow: 'hidden', fontFamily: 'ui-monospace, monospace', fontSize: 12 }}>
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '10px 16px', borderBottom: '1px solid #2e2e42',
-        fontFamily: '-apple-system, sans-serif',
-      }}>
-        <span style={{ color: '#ccc', fontWeight: 600, fontSize: 13 }}>Event Log</span>
-        {log.length > 0 && (
-          <button onClick={onClear} style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: 11 }}>
-            clear
-          </button>
-        )}
+        padding: '8px 14px', borderBottom: collapsed ? 'none' : '1px solid #2e2e42',
+        cursor: 'pointer',
+      }} onClick={onToggle}>
+        <span style={{ color: '#aaa', fontWeight: 600, fontSize: 12, fontFamily: '-apple-system, sans-serif' }}>
+          Event Log {log.length > 0 && <span style={{ color: '#555' }}>({log.length})</span>}
+        </span>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {log.length > 0 && !collapsed && (
+            <button onClick={e => { e.stopPropagation(); onClear() }} style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: 10, fontFamily: '-apple-system, sans-serif' }}>clear</button>
+          )}
+          <span style={{ color: '#555', fontSize: 10 }}>{collapsed ? '▸' : '▾'}</span>
+        </div>
       </div>
-      <div style={{ minHeight: 120, maxHeight: 480, overflowY: 'auto', padding: '8px 0' }}>
-        {log.length === 0
-          ? <div style={{ color: '#444', padding: '16px', textAlign: 'center', fontFamily: '-apple-system, sans-serif' }}>
-              drag, drop or click…
-            </div>
-          : log.map(entry => (
-            <div key={entry.id} style={{
-              display: 'flex', gap: 8, padding: '5px 16px',
-              borderBottom: '1px solid #1a1a28', alignItems: 'baseline',
-            }}>
-              <span style={{
-                color: LOG_COLORS[entry.type], minWidth: 44, fontSize: 10,
-                fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em',
-              }}>
-                {entry.type}
-              </span>
-              <span style={{ color: '#c9d1d9', lineHeight: 1.4 }}>{entry.message}</span>
-            </div>
-          ))
-        }
-      </div>
+      {!collapsed && (
+        <div style={{ maxHeight: 200, overflowY: 'auto', padding: '4px 0' }}>
+          {log.length === 0
+            ? <div style={{ color: '#444', padding: '12px 14px', fontFamily: '-apple-system, sans-serif', fontSize: 11 }}>interact with the timeline…</div>
+            : log.map(entry => (
+              <div key={entry.id} style={{ display: 'flex', gap: 8, padding: '4px 14px', alignItems: 'baseline' }}>
+                <span style={{ color: LOG_COLORS[entry.type], minWidth: 42, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0 }}>{entry.type}</span>
+                <span style={{ color: '#c9d1d9', lineHeight: 1.4, fontSize: 11 }}>{entry.message}</span>
+              </div>
+            ))}
+        </div>
+      )}
     </div>
   )
 }
 
-// ─── custom renderEventContent ────────────────────────────────────────────────
-// Mirrors what balanced-work-life ScheduleGrid does: area dot, status badge, unschedule btn
+// ─── prop row ─────────────────────────────────────────────────────────────────
 
-interface ExtendedEvent extends TimelineEvent {
-  status?: 'pending' | 'completed' | 'cancelled'
+function PropRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 28 }}>
+      <div style={{ minWidth: 0, flexShrink: 1 }}>
+        <span style={{ fontSize: 12, color: '#444', fontFamily: 'ui-monospace, monospace', whiteSpace: 'nowrap' }}>{label}</span>
+        {hint && <span style={{ fontSize: 10, color: '#bbb', marginLeft: 4 }}>{hint}</span>}
+      </div>
+      <div style={{ flexShrink: 0 }}>{children}</div>
+    </div>
+  )
 }
 
-function makeEventContent(
-  onUnschedule: (id: string) => void,
-  onToggleStatus: (id: string) => void,
-  selectedId: string | null,
-) {
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#bbb', marginTop: 4, marginBottom: 2 }}>
+      {children}
+    </div>
+  )
+}
+
+function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      onClick={() => onChange(!value)}
+      style={{
+        width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer',
+        background: value ? '#7c6fcd' : '#d1d5db', position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+      }}
+    >
+      <span style={{
+        position: 'absolute', top: 3, left: value ? 18 : 3, width: 14, height: 14,
+        borderRadius: '50%', background: '#fff', transition: 'left 0.2s', display: 'block',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+      }} />
+    </button>
+  )
+}
+
+function RadioGroup<T extends string>({ options, value, onChange }: {
+  options: { value: T; label: string }[]
+  value: T
+  onChange: (v: T) => void
+}) {
+  return (
+    <div style={{ display: 'flex', gap: 2, background: '#f3f3f8', borderRadius: 8, padding: 2 }}>
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          style={{
+            padding: '3px 8px', fontSize: 11, fontWeight: 500, border: 'none', borderRadius: 6, cursor: 'pointer',
+            background: value === opt.value ? '#fff' : 'transparent',
+            color: value === opt.value ? '#7c6fcd' : '#888',
+            boxShadow: value === opt.value ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+            transition: 'all 0.15s',
+          }}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function MiniSelect({ value, options, onChange }: {
+  value: number; options: number[]; onChange: (v: number) => void
+}) {
+  return (
+    <select value={value} onChange={e => onChange(Number(e.target.value))} style={{
+      border: '1px solid #e0e0f0', borderRadius: 7, padding: '3px 7px',
+      fontSize: 12, background: '#fff', cursor: 'pointer', color: '#333',
+    }}>
+      {options.map(v => <option key={v} value={v}>{v}m</option>)}
+    </select>
+  )
+}
+
+// ─── custom renderEventContent ────────────────────────────────────────────────
+
+function makeEventContent(onUnschedule: (id: string) => void, onToggleStatus: (id: string) => void) {
   return (event: TimelineEvent) => {
     const ev = event as ExtendedEvent
     const status = ev.status ?? 'pending'
     const dotColor = AREA_COLORS[ev.category ?? 'life']?.dot ?? '#7c6fcd'
     const isLong = ev.durationMinutes >= 60
 
-    const isSelected = ev.id === selectedId
-
     return (
-      <div style={{
-        display: 'flex', flexDirection: 'column', height: '100%', gap: 4, fontSize: 12,
-        borderRadius: 8,
-        padding: isSelected ? '4px 6px' : undefined,
-        boxShadow: isSelected ? 'inset 0 0 0 2px #7c6fcd, 0 0 0 3px rgba(124,111,205,0.18)' : undefined,
-        transition: 'padding 0.1s, box-shadow 0.1s',
-      }}>
-        {/* top row */}
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 4, fontSize: 12 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-          <span
-            style={{
-              width: 8, height: 8, borderRadius: '50%', background: dotColor,
-              flexShrink: 0, marginTop: 3,
-            }}
-          />
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: dotColor, flexShrink: 0, marginTop: 3 }} />
           <span style={{
             flex: 1, fontWeight: 600, fontSize: 13, lineHeight: 1.3,
-            color: status === 'pending' ? '#1a1a2e' : '#999',
+            color: status === 'cancelled' ? '#bbb' : '#1a1a2e',
             textDecoration: status === 'completed' ? 'line-through' : 'none',
             wordBreak: 'break-word',
-          }}>
-            {ev.title}
-          </span>
-          {/* unschedule button */}
+          }}>{ev.title}</span>
           <button
             onPointerDown={e => e.stopPropagation()}
             onClick={e => { e.stopPropagation(); onUnschedule(ev.id) }}
             title="Unschedule"
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: '#aaa', fontSize: 14, lineHeight: 1, padding: '0 2px', flexShrink: 0,
-            }}
-          >
-            ×
-          </button>
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#bbb', fontSize: 15, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}
+          >×</button>
         </div>
-
-        {/* bottom row — only on tall cards */}
         {isLong && (
-          <div style={{
-            marginTop: 'auto', display: 'flex', alignItems: 'center',
-            justifyContent: 'space-between', gap: 6,
-            paddingTop: 4, borderTop: '1px solid rgba(0,0,0,0.06)',
-          }}>
+          <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, paddingTop: 4, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
             <span style={{ fontSize: 10, color: '#888', fontWeight: 600, textTransform: 'uppercase' }}>
               {AREA_LABELS[ev.category ?? 'life'] ?? ev.category}
             </span>
             <button
               onPointerDown={e => e.stopPropagation()}
-              onClick={e => {
-                e.stopPropagation()
-                onToggleStatus(ev.id)
-              }}
+              onClick={e => { e.stopPropagation(); onToggleStatus(ev.id) }}
               style={{
                 fontSize: 10, fontWeight: 700, border: 'none', borderRadius: 6,
                 padding: '2px 7px', cursor: 'pointer',
@@ -266,7 +288,7 @@ function makeEventContent(
                 color: STATUS_COLORS[status],
               }}
             >
-              {status === 'completed' ? '✓ done' : status === 'cancelled' ? '— cancelled' : '○ pending'}
+              {status === 'completed' ? '✓ done' : status === 'cancelled' ? '— skip' : '○ pending'}
             </button>
           </div>
         )}
@@ -275,17 +297,10 @@ function makeEventContent(
   }
 }
 
-// ─── custom renderSlotAction ──────────────────────────────────────────────────
-// Inline task-creation form — mirrors balanced-work-life ScheduleGrid
+// ─── slot action form ─────────────────────────────────────────────────────────
 
-function SlotForm({
-  startMinute,
-  close,
-  onAdd,
-}: {
-  startMinute: number
-  close: () => void
-  onAdd: (title: string, category: string, startMinute: number) => void
+function SlotForm({ startMinute, close, onAdd }: {
+  startMinute: number; close: () => void; onAdd: (title: string, category: string, startMinute: number) => void
 }) {
   const [text, setText] = useState('')
   const [cat, setCat] = useState('work')
@@ -297,177 +312,60 @@ function SlotForm({
   }
 
   return (
-    <div
-      style={{
-        display: 'flex', flexDirection: 'column', gap: 6,
-        background: 'rgba(0,0,0,0.03)', borderRadius: 10,
-        border: '1px solid rgba(0,0,0,0.06)', padding: 8, width: '100%',
-      }}
-      onClick={e => e.stopPropagation()}
-    >
+    <div style={{
+      display: 'flex', flexDirection: 'column', gap: 6,
+      background: 'rgba(0,0,0,0.03)', borderRadius: 10,
+      border: '1px solid rgba(0,0,0,0.06)', padding: 8, width: '100%',
+    }} onClick={e => e.stopPropagation()}>
       <input
-        autoFocus
-        placeholder={`Add task at ${formatMin(startMinute)}…`}
-        value={text}
-        onChange={e => setText(e.target.value)}
-        onKeyDown={e => {
-          if (e.key === 'Enter') submit()
-          if (e.key === 'Escape') close()
-        }}
-        style={{
-          border: '1px solid rgba(0,0,0,0.1)', borderRadius: 8,
-          padding: '4px 8px', fontSize: 12, outline: 'none', background: '#fff',
-        }}
+        autoFocus placeholder={`Add at ${formatMin(startMinute)}…`}
+        value={text} onChange={e => setText(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') close() }}
+        style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: 8, padding: '4px 8px', fontSize: 12, outline: 'none', background: '#fff' }}
       />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
-        <select
-          value={cat}
-          onChange={e => setCat(e.target.value)}
-          style={{
-            border: '1px solid rgba(0,0,0,0.1)', borderRadius: 8,
-            padding: '3px 6px', fontSize: 11, background: '#fff', cursor: 'pointer',
-          }}
-        >
-          {Object.entries(AREA_LABELS).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
-          ))}
+        <select value={cat} onChange={e => setCat(e.target.value)} style={{
+          border: '1px solid rgba(0,0,0,0.1)', borderRadius: 8, padding: '3px 6px', fontSize: 11, background: '#fff', cursor: 'pointer',
+        }}>
+          {Object.entries(AREA_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
         <div style={{ display: 'flex', gap: 4 }}>
-          <button
-            onClick={close}
-            style={{ fontSize: 11, color: '#999', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={submit}
-            style={{
-              fontSize: 11, fontWeight: 700, background: '#7c6fcd', color: '#fff',
-              border: 'none', borderRadius: 8, padding: '3px 10px', cursor: 'pointer',
-            }}
-          >
-            Add
-          </button>
+          <button onClick={close} style={{ fontSize: 11, color: '#999', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>Cancel</button>
+          <button onClick={submit} style={{ fontSize: 11, fontWeight: 700, background: '#7c6fcd', color: '#fff', border: 'none', borderRadius: 8, padding: '3px 10px', cursor: 'pointer' }}>Add</button>
         </div>
       </div>
     </div>
   )
 }
-
-// ─── edit panel (custom tab) ─────────────────────────────────────────────────
-
-function EditPanel({
-  event,
-  onSave,
-  onClose,
-}: {
-  event: ExtendedEvent
-  onSave: (updated: ExtendedEvent) => void
-  onClose: () => void
-}) {
-  const [title, setTitle] = useState(event.title)
-  const [category, setCategory] = useState(event.category ?? 'work')
-  const [duration, setDuration] = useState(event.durationMinutes)
-
-  function save() {
-    onSave({
-      ...event,
-      title: title.trim() || event.title,
-      category,
-      durationMinutes: duration,
-      color: AREA_COLORS[category]?.bg ?? '#ede9ff',
-    })
-    onClose()
-  }
-
-  const inputStyle: React.CSSProperties = {
-    border: '1px solid #e0e0ee', borderRadius: 8, padding: '6px 10px',
-    fontSize: 13, background: '#fff', outline: 'none', width: '100%', boxSizing: 'border-box',
-  }
-
-  return (
-    <div style={{
-      background: '#fff', borderRadius: 12, padding: 16,
-      boxShadow: '0 2px 12px rgba(0,0,0,0.1)', fontFamily: '-apple-system, sans-serif',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <span style={{ fontWeight: 700, fontSize: 13, color: '#1a1a2e' }}>Edit event</span>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#aaa', fontSize: 16, lineHeight: 1 }}>×</button>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Title</label>
-          <input
-            autoFocus
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') onClose() }}
-            style={inputStyle}
-          />
-        </div>
-
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Category</label>
-          <select value={category} onChange={e => setCategory(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
-            {Object.entries(AREA_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>
-            Duration — {formatDur(duration)}
-          </label>
-          <input
-            type="range" min={15} max={240} step={15} value={duration}
-            onChange={e => setDuration(Number(e.target.value))}
-            style={{ width: '100%', accentColor: '#7c6fcd' }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#bbb', marginTop: 2 }}>
-            <span>15m</span><span>4h</span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
-          <button onClick={onClose} style={{
-            flex: 1, padding: '7px 0', borderRadius: 8, border: '1px solid #e0e0ee',
-            background: '#fff', color: '#666', fontSize: 13, cursor: 'pointer', fontWeight: 600,
-          }}>Cancel</button>
-          <button onClick={save} style={{
-            flex: 2, padding: '7px 0', borderRadius: 8, border: 'none',
-            background: '#7c6fcd', color: '#fff', fontSize: 13, cursor: 'pointer', fontWeight: 700,
-          }}>Save</button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Demo tabs ────────────────────────────────────────────────────────────────
-
-type Tab = 'default' | 'custom'
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 function App() {
-  const [tab, setTab] = useState<Tab>('default')
-
-  // shared state for both demos
   const [events, setEvents] = useState<ExtendedEvent[]>(INITIAL_EVENTS)
   const [backlog, setBacklog] = useState<BacklogItem[]>(INITIAL_BACKLOG)
   const [log, setLog] = useState<LogEntry[]>([])
+  const [logCollapsed, setLogCollapsed] = useState(false)
+
+  // props
+  const [title, setTitle] = useState('Daily Timeline')
   const [startHour, setStartHour] = useState(7)
   const [endHour, setEndHour] = useState(20)
-  const [slotInterval, setSlotInterval] = useState(60)
+  const [hourHeight, setHourHeight] = useState(80)
+  const [snapMinutes, setSnapMinutes] = useState(15)
+  const [slotMinutes, setSlotMinutes] = useState(60)
+  const slotActionInterval = snapMinutes
+  const [slotActionTrigger, setSlotActionTrigger] = useState<'row' | 'button' | 'both'>('both')
+  const [showMarkers, setShowMarkers] = useState<'always' | 'hover' | 'none'>('always')
+  const [showLabels, setShowLabels] = useState(true)
+  const [showCurrentTime, setShowCurrentTime] = useState(true)
+  const [customRender, setCustomRender] = useState(true)
+
   const [draggingDuration, setDraggingDuration] = useState<number | undefined>()
   const [draggingOffsetY, setDraggingOffsetY] = useState(0)
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
   const tlRef = useRef<DailyTimelineHandle>(null)
 
   function addLog(type: LogEntry['type'], message: string) {
-    setLog(prev => [{ id: logId++, type, message }, ...prev].slice(0, 30))
+    setLog(prev => [{ id: logId++, type, message }, ...prev].slice(0, 40))
   }
 
   function handleChange(updated: TimelineEvent) {
@@ -477,12 +375,6 @@ function App() {
 
   function handleClick(event: TimelineEvent) {
     addLog('click', `"${event.title}"`)
-    if (isCustom) setSelectedEventId(prev => prev === event.id ? null : event.id)
-  }
-
-  function handleRemove(event: TimelineEvent) {
-    setEvents(prev => prev.filter(e => e.id !== event.id))
-    addLog('remove', `"${event.title}" removed`)
   }
 
   function handleExternalDrop(data: string, startMinute: number) {
@@ -490,229 +382,229 @@ function App() {
     const item = backlog.find(b => b.id === id)
     if (!item) return
     const newEvent: ExtendedEvent = {
-      id: String(nextId++),
-      title: item.title,
-      startMinute,
-      durationMinutes: item.durationMinutes,
-      color: AREA_COLORS[item.category]?.bg ?? '#ede9ff',
-      category: item.category,
-      status: 'pending',
+      id: String(nextId++), title: item.title, startMinute,
+      durationMinutes: item.durationMinutes, color: AREA_COLORS[item.category]?.bg ?? '#ede9ff',
+      category: item.category, status: 'pending',
     }
     setEvents(prev => [...prev, newEvent])
     setBacklog(prev => prev.filter(b => b.id !== id))
-    addLog('drop', `"${item.title}" dropped at ${formatMin(startMinute)}`)
+    addLog('drop', `"${item.title}" → ${formatMin(startMinute)}`)
   }
 
   function handleUnschedule(id: string) {
     const ev = events.find(e => e.id === id)
+    if (!ev) return
     setEvents(prev => prev.filter(e => e.id !== id))
-    addLog('remove', `"${ev?.title}" unscheduled`)
+    const cat = ev.category ?? 'work'
+    setBacklog(prev => [...prev, { id: `b${nextId++}`, title: ev.title, durationMinutes: ev.durationMinutes, color: AREA_COLORS[cat]?.bg ?? '#ede9ff', category: cat }])
+    addLog('remove', `"${ev.title}" → backlog`)
   }
 
   function handleToggleStatus(id: string) {
     setEvents(prev => prev.map(e => {
       if (e.id !== id) return e
       const next = e.status === 'pending' ? 'completed' : e.status === 'completed' ? 'cancelled' : 'pending'
-      addLog('change', `"${e.title}" → ${next}`)
+      addLog('change', `"${e.title}" status → ${next}`)
       return { ...e, status: next }
     }))
   }
 
   function handleSlotAdd(title: string, category: string, startMinute: number) {
     const newEvent: ExtendedEvent = {
-      id: String(nextId++),
-      title,
-      startMinute,
-      durationMinutes: 30,
-      color: AREA_COLORS[category]?.bg ?? '#ede9ff',
-      category,
-      status: 'pending',
+      id: String(nextId++), title, startMinute, durationMinutes: slotActionInterval,
+      color: AREA_COLORS[category]?.bg ?? '#ede9ff', category, status: 'pending',
     }
     setEvents(prev => [...prev, newEvent])
-    addLog('create', `"${title}" created at ${formatMin(startMinute)}`)
+    addLog('create', `"${title}" at ${formatMin(startMinute)}`)
   }
 
-  const isCustom = tab === 'custom'
-
-  // clear selection when switching tabs
-  function handleTabChange(t: Tab) {
-    setTab(t)
-    setSelectedEventId(null)
-  }
-
-  function handleEditSave(updated: ExtendedEvent) {
-    setEvents(prev => prev.map(e => e.id === updated.id ? updated : e))
-    addLog('change', `"${updated.title}" edited`)
-  }
-
-  const selectedEvent = isCustom ? events.find(e => e.id === selectedEventId) ?? null : null
-
-  const tabBtnStyle = (active: boolean): React.CSSProperties => ({
-    padding: '6px 18px', borderRadius: 8, border: 'none', cursor: 'pointer',
-    fontWeight: 700, fontSize: 13,
-    background: active ? '#7c6fcd' : '#f0f0f5',
-    color: active ? '#fff' : '#666',
-    transition: 'background 0.15s',
-  })
+  const renderContent = customRender ? makeEventContent(handleUnschedule, handleToggleStatus) : undefined
 
   return (
-    <div style={{ minHeight: '100vh', background: '#eeeef5', paddingBottom: 48 }}>
+    <div style={{ minHeight: '100vh', background: '#f0f0f7', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
 
       {/* header */}
-      <div style={{ padding: '28px 24px 0', maxWidth: 1100, margin: '0 auto' }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#1a1a2e', fontFamily: '-apple-system, sans-serif' }}>
-          @papesce/dayslot demo
+      <div style={{ borderBottom: '1px solid #e4e4f0', background: '#fff', padding: '14px 28px', display: 'flex', alignItems: 'baseline', gap: 12 }}>
+        <h1 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#1a1a2e', letterSpacing: '-0.02em' }}>
+          @papesce/dayslot
         </h1>
-        <p style={{ margin: '6px 0 20px', fontSize: 14, color: '#777', fontFamily: '-apple-system, sans-serif' }}>
-          Embeddable drag-and-drop daily timeline component
-        </p>
-
-        {/* tabs */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-          <button style={tabBtnStyle(!isCustom)} onClick={() => handleTabChange('default')}>
-            Default rendering
-          </button>
-          <button style={tabBtnStyle(isCustom)} onClick={() => handleTabChange('custom')}>
-            renderEventContent + renderSlotAction
-          </button>
-        </div>
-
-        {isCustom && (
-          <div style={{
-            background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10,
-            padding: '10px 16px', marginBottom: 20, fontSize: 13, color: '#92400e',
-            fontFamily: '-apple-system, sans-serif', lineHeight: 1.5,
-          }}>
-            <strong>New in v0.2:</strong> Pass <code>renderEventContent</code> to inject custom card UI (area dot, status badge,
-            unschedule button). Pass <code>renderSlotAction</code> to render an inline creation form when a slot is clicked.
-            Both are optional — omit either to keep the built-in default.
-          </div>
-        )}
+        <span style={{ fontSize: 13, color: '#999' }}>interactive component playground</span>
       </div>
 
-      {/* main layout */}
-      <div style={{
-        display: 'flex', justifyContent: 'center', padding: '0 16px',
-        gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', maxWidth: 1100, margin: '0 auto',
-      }}>
+      {/* two-column layout */}
+      <div style={{ display: 'flex', gap: 0, height: 'calc(100vh - 53px)' }}>
 
-        {/* left: backlog + controls */}
-        <div style={{ width: 200, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* left: timeline (dominant) */}
+        <div style={{ flex: '1 1 0', minWidth: 0, padding: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-          {/* backlog */}
-          <div style={{ background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid #eee', fontWeight: 700, fontSize: 14, color: '#1a1a2e', fontFamily: '-apple-system, sans-serif' }}>
-              Backlog
-            </div>
-            <div style={{ padding: 10, display: 'flex', flexDirection: 'column', gap: 8, minHeight: 80 }}>
-              {backlog.length === 0
-                ? <div style={{ color: '#bbb', fontSize: 12, textAlign: 'center', padding: '12px 0', fontFamily: '-apple-system, sans-serif' }}>empty</div>
-                : backlog.map(item => (
+          {/* backlog strip */}
+          {backlog.length > 0 && (
+            <div style={{ background: '#fff', borderRadius: 10, padding: '10px 14px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)', flexShrink: 0 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#bbb', marginBottom: 8 }}>
+                Backlog — drag onto the timeline
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {backlog.map(item => (
+                  <div key={item.id} style={{ width: 160 }}>
                     <BacklogCard
-                      key={item.id}
                       item={item}
                       onDragStart={offsetY => { setDraggingDuration(item.durationMinutes); setDraggingOffsetY(offsetY) }}
                       onDragEnd={() => setDraggingDuration(undefined)}
                     />
-                  ))
-              }
+                  </div>
+                ))}
+              </div>
             </div>
-            <div style={{ padding: '0 10px 10px', fontSize: 11, color: '#bbb', textAlign: 'center', lineHeight: 1.4, fontFamily: '-apple-system, sans-serif' }}>
-              drag a card onto the timeline
-            </div>
-          </div>
+          )}
 
-          {/* hour range */}
-          <div style={{
-            background: '#fff', borderRadius: 12, padding: '12px 16px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', flexDirection: 'column', gap: 8,
-          }}>
-            <HourSelect label="Start" value={startHour} onChange={v => setStartHour(Math.min(v, endHour - 1))} />
-            <HourSelect label="End" value={endHour} onChange={v => setEndHour(Math.max(v, startHour + 1))} />
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#444' }}>
-              <span style={{ minWidth: 70 }}>Slot</span>
-              <select value={slotInterval} onChange={e => setSlotInterval(Number(e.target.value))} style={{
-                border: '1px solid #ddd', borderRadius: 8, padding: '4px 8px', fontSize: 13, background: '#fff', cursor: 'pointer',
-              }}>
-                {[15, 30, 60, 120].map(v => <option key={v} value={v}>{v}m</option>)}
-              </select>
-            </label>
-          </div>
-
-          {/* scroll controls */}
-          <div style={{
-            background: '#fff', borderRadius: 12, padding: '10px 16px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.07)', fontFamily: '-apple-system, sans-serif',
-          }}>
-            <SectionLabel>Scroll to</SectionLabel>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <button onClick={() => tlRef.current?.scrollToNow()} style={{ ...scrollBtnStyle('#7c6fcd20'), textAlign: 'left' }}>
-                ⏱ Now
-              </button>
-              {events.map(ev => (
-                <button key={ev.id} onClick={() => tlRef.current?.scrollToEvent(ev.id)} style={{ ...scrollBtnStyle(ev.color ?? '#ede9ff'), textAlign: 'left' }}>
-                  {ev.title.length > 18 ? ev.title.slice(0, 16) + '…' : ev.title}
-                </button>
-              ))}
-            </div>
-          </div>
-
-        </div>
-
-        {/* center: timeline only */}
-        <div style={{ flex: 1, minWidth: 320, maxWidth: 480 }}>
-          <DailyTimeline
-            events={events}
-            startHour={startHour}
-            endHour={endHour}
-            hourHeight={80}
-            snapMinutes={15}
-            slotIntervalMinutes={slotInterval}
-            height="80vh"
-            title="Daily Timeline"
-            onEventChange={handleChange}
-            onEventClick={handleClick}
-            onEventRemove={isCustom ? undefined : handleRemove}
-            onExternalDrop={handleExternalDrop}
-            externalDragDuration={draggingDuration}
-            externalDragOffsetY={draggingOffsetY}
-            timelineRef={tlRef}
-            initialScrollTo="now"
-            // ── new props (only active in "custom" tab) ──────────────────────
-            renderEventContent={isCustom
-              ? makeEventContent(handleUnschedule, handleToggleStatus, selectedEventId)
-              : undefined
-            }
-            renderSlotAction={isCustom
-              ? (startMinute, close) => (
-                  <SlotForm startMinute={startMinute} close={close} onAdd={handleSlotAdd} />
-                )
-              : undefined
-            }
-          />
-        </div>
-
-        {/* right: edit panel (custom tab, event selected) or event log */}
-        <div style={{ width: '100%', maxWidth: 280, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {isCustom && selectedEvent && (
-            <EditPanel
-              event={selectedEvent}
-              onSave={handleEditSave}
-              onClose={() => setSelectedEventId(null)}
+          {/* timeline */}
+          <div style={{ flex: 1, minHeight: 0 }}>
+            <DailyTimeline
+              events={events}
+              startHour={startHour}
+              endHour={endHour}
+              hourHeight={hourHeight}
+              snapMinutes={snapMinutes}
+              slotMinutes={slotMinutes}
+              slotActionTrigger={slotActionTrigger}
+              showMarkers={showMarkers}
+              showLabels={showLabels}
+              showCurrentTime={showCurrentTime}
+              height="100%"
+              title={title}
+              onEventChange={handleChange}
+              onEventClick={handleClick}
+              onExternalDrop={handleExternalDrop}
+              externalDragDuration={draggingDuration}
+              externalDragOffsetY={draggingOffsetY}
+              timelineRef={tlRef}
+              initialScrollTo="now"
+              renderEventContent={renderContent}
+              renderSlotAction={(startMinute, close) => <SlotForm startMinute={startMinute} close={close} onAdd={handleSlotAdd} />}
             />
-          )}
-          {isCustom && !selectedEvent && (
-            <div style={{
-              background: '#fff', borderRadius: 12, padding: '14px 16px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.07)', fontSize: 13, color: '#bbb',
-              fontFamily: '-apple-system, sans-serif', textAlign: 'center',
-            }}>
-              Click an event to edit it
-            </div>
-          )}
-          <EventLog log={log} onClear={() => setLog([])} />
+          </div>
         </div>
 
+        {/* right: props explorer + log */}
+        <div style={{
+          width: 320, flexShrink: 0, borderLeft: '1px solid #e4e4f0', background: '#fff',
+          display: 'flex', flexDirection: 'column', overflowY: 'auto',
+        }}>
+          {/* props panel */}
+          <div style={{ padding: '14px 16px', flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a2e', marginBottom: 10 }}>Props Explorer</div>
+
+            <SectionLabel>General</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+              <PropRow label="title">
+                <input
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  style={{
+                    border: '1px solid #e0e0f0', borderRadius: 8, padding: '4px 8px',
+                    fontSize: 12, background: '#fff', color: '#333', width: 110,
+                  }}
+                />
+              </PropRow>
+            </div>
+
+            <SectionLabel>Timing</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+              <PropRow label="startHour">
+                <HourSelect value={startHour} onChange={v => setStartHour(Math.min(v, endHour - 1))} />
+              </PropRow>
+              <PropRow label="endHour">
+                <HourSelect value={endHour} onChange={v => setEndHour(Math.max(v, startHour + 1))} />
+              </PropRow>
+              <PropRow label="snapMinutes">
+                <MiniSelect value={snapMinutes} options={[5, 10, 15, 30, 60]} onChange={setSnapMinutes} />
+              </PropRow>
+            </div>
+
+            <SectionLabel>Display</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+              <PropRow label="hourHeight" hint={`${hourHeight}px`}>
+                <input type="range" min={40} max={200} step={10} value={hourHeight}
+                  onChange={e => setHourHeight(Number(e.target.value))}
+                  style={{ width: 90, accentColor: '#7c6fcd' }} />
+              </PropRow>
+              <PropRow label="showCurrentTime">
+                <Toggle value={showCurrentTime} onChange={setShowCurrentTime} />
+              </PropRow>
+              <PropRow label="renderEventContent" hint="custom">
+                <Toggle value={customRender} onChange={setCustomRender} />
+              </PropRow>
+            </div>
+
+            <SectionLabel>Slots</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+              <PropRow label="slotMinutes">
+                <MiniSelect value={slotMinutes} options={[15, 30, 60, 120]}
+                  onChange={setSlotMinutes} />
+              </PropRow>
+              <PropRow label="slotActionTrigger">
+                <RadioGroup
+                  value={slotActionTrigger}
+                  onChange={setSlotActionTrigger}
+                  options={[
+                    { value: 'row', label: 'row' },
+                    { value: 'button', label: '+btn' },
+                    { value: 'both', label: 'both' },
+                  ]}
+                />
+              </PropRow>
+            </div>
+
+            <SectionLabel>Markers</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+              <PropRow label="showMarkers">
+                <RadioGroup
+                  value={showMarkers}
+                  onChange={setShowMarkers}
+                  options={[
+                    { value: 'always', label: 'always' },
+                    { value: 'hover', label: 'hover' },
+                    { value: 'none', label: 'none' },
+                  ]}
+                />
+              </PropRow>
+              <PropRow label="showLabels">
+                <Toggle value={showLabels} onChange={setShowLabels} />
+              </PropRow>
+            </div>
+
+            <SectionLabel>Scroll to (ref API)</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 10 }}>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                <button onClick={() => tlRef.current?.scrollToNow()}
+                  style={{ fontSize: 11, background: '#f3f0ff', color: '#7c6fcd', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontWeight: 600 }}>
+                  scrollToNow()
+                </button>
+                <button onClick={() => tlRef.current?.scrollToMinute(0)}
+                  style={{ fontSize: 11, background: '#f3f0ff', color: '#7c6fcd', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontWeight: 600 }}>
+                  scrollToMinute(0)
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxHeight: 160, overflowY: 'auto' }}>
+                {events.map(ev => (
+                  <button key={ev.id} onClick={() => tlRef.current?.scrollToEvent(ev.id)}
+                    style={{
+                      background: ev.color ?? '#ede9ff', border: 'none', borderRadius: 6, padding: '4px 8px',
+                      fontSize: 11, fontWeight: 500, color: '#1a1a2e', cursor: 'pointer', textAlign: 'left',
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    }}>
+                    scrollToEvent("{ev.title.length > 14 ? ev.title.slice(0, 12) + '…' : ev.title}")
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* event log pinned to bottom */}
+          <div style={{ padding: '0 0 0 0', borderTop: '1px solid #e4e4f0' }}>
+            <EventLog log={log} onClear={() => setLog([])} collapsed={logCollapsed} onToggle={() => setLogCollapsed(v => !v)} />
+          </div>
+        </div>
       </div>
     </div>
   )

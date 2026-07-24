@@ -85,7 +85,9 @@ function App() {
 | `renderSlotAction` | `(startMinute, close) => ReactNode` | — | Render an action UI anchored to a slot row when clicked |
 | `slotActionTrigger` | `'row' \| 'button' \| 'both'` | `'both'` | What triggers the slot action — row click, + button, or both |
 | `showCurrentTime` | `boolean` | `true` | Show or hide the current-time indicator line |
-| `slotIntervalMinutes` | `number` | `60` | Minutes per slot row. Use `15`, `30`, `60`, or `120` (must divide 60 or be a multiple of 60). |
+| `slotMinutes` | `number` | `60` | Primary time division — grid rows, hour labels, and border lines. Use `15`, `30`, `60`, or `120` (must divide 60 or be a multiple of 60). |
+| `showMarkers` | `'none' \| 'hover' \| 'always'` | auto | Show divider lines at subdivision boundaries (where `slotMinutes / snapMinutes > 1`). Defaults to `'always'` when subdivisions > 1, `'none'` otherwise. |
+| `showLabels` | `boolean` | `false` | Show time labels on subdivision divider lines. |
 
 ### `TimelineEvent`
 

@@ -65,15 +65,21 @@ function DailyTimelineInner({
   renderSlotAction,
   slotActionTrigger = 'both',
   showCurrentTime = true,
-  slotIntervalMinutes = 60,
+  slotMinutes: slotMinutesProp,
+  showMarkers: showMarkersProp,
+  showLabels = false,
 }: DailyTimelineProps) {
-  const interval = slotIntervalMinutes > 0 ? slotIntervalMinutes : 60
-  if (60 % interval !== 0 && interval % 60 !== 0) {
-    console.warn(`slotIntervalMinutes=${interval} should divide 60 or be a multiple of 60.`)
+  const slotMinutes = slotMinutesProp != null && slotMinutesProp > 0 ? slotMinutesProp : 60
+  if (60 % slotMinutes !== 0 && slotMinutes % 60 !== 0) {
+    console.warn(`slotMinutes=${slotMinutes} should divide 60 or be a multiple of 60.`)
   }
-  const slotCount = Math.round(((endHour - startHour) * 60) / interval)
-  const slots = Array.from({ length: slotCount }, (_, i) => startHour * 60 + i * interval)
-  const slotHeight = hourHeight * (interval / 60)
+
+  const subdivisions = Math.round(slotMinutes / snapMinutes)
+  const actionInterval = slotMinutes / subdivisions
+  const showMarkers = showMarkersProp ?? (subdivisions > 1 ? 'always' : 'none')
+  const slotCount = Math.round(((endHour - startHour) * 60) / slotMinutes)
+  const slots = Array.from({ length: slotCount }, (_, i) => startHour * 60 + i * slotMinutes)
+  const slotHeight = hourHeight * (slotMinutes / 60)
   const timelineStartMinute = startHour * 60
   const timelineEndMinute = endHour * 60
   const totalHeight = slotCount * slotHeight
@@ -109,6 +115,7 @@ function DailyTimelineInner({
   const [dropTarget, setDropTarget] = useState(false)
   const [dropMinute, setDropMinute] = useState<number | null>(null)
   const [activeSlotMinute, setActiveSlotMinute] = useState<number | null>(null)
+  const [hoveredActionMinute, setHoveredActionMinute] = useState<number | null>(null)
 
   const minuteToScrollTop = useCallback((minute: number) => {
     const clampedMinute = Math.max(startHour * 60, Math.min(endHour * 60, minute))
@@ -192,11 +199,17 @@ function DailyTimelineInner({
     const d = drag.current
     if (!d) return
     e.preventDefault()
-    didDrag.current = true
     dragClientYRef.current = e.clientY
-    startEdgeScroll()
+
     const scrollDelta = (bodyRef.current?.scrollTop ?? 0) - d.origScrollTop
     const dy = e.clientY - d.startY + scrollDelta
+
+    if (!didDrag.current) {
+      if (Math.abs(dy) < 3) return
+      didDrag.current = true
+    }
+
+    startEdgeScroll()
     const deltaMins = snap(dy * minutesPerPx, snapMinutes)
 
     if (d.type === 'move') {
@@ -228,7 +241,7 @@ function DailyTimelineInner({
     window.removeEventListener('pointerup', onPointerUp)
 
     const override = liveOverrideRef.current
-    if (override && onEventChangeRef.current) {
+    if (didDrag.current && override && onEventChangeRef.current) {
       const orig = events.find(ev => ev.id === d.eventId)
       if (orig) onEventChangeRef.current({ ...orig, ...override })
     }
@@ -310,7 +323,8 @@ function DailyTimelineInner({
           onDrop={handleDrop}
         >
           {slots.map(slotMinute => {
-            const isActiveSlot = activeSlotMinute === slotMinute
+            const isActiveSlot = activeSlotMinute !== null && activeSlotMinute >= slotMinute && activeSlotMinute < slotMinute + slotMinutes
+            const isHourBoundary = slotMinute % 60 === 0
             return (
               <div
                 key={slotMinute}
@@ -322,24 +336,51 @@ function DailyTimelineInner({
                   }
                 }}
               >
-                <span className="ds-timeline__hour-label">{formatSlotLabel(slotMinute)}</span>
+                <span className={`ds-timeline__hour-label${isHourBoundary ? '' : ' ds-timeline__hour-label--sub'}`}>{formatSlotLabel(slotMinute)}</span>
+                {showMarkers !== 'none' && subdivisions > 1 && Array.from({ length: subdivisions - 1 }, (_, i) => {
+                  const subMinute = slotMinute + (i + 1) * actionInterval
+                  return (
+                    <div
+                      key={i}
+                      className={`ds-timeline__marker${showMarkers === 'hover' ? ' ds-timeline__marker--hover' : ''}`}
+                      style={{ top: `${((i + 1) / subdivisions) * 100}%` }}
+                    >
+                      {showLabels && <span className="ds-timeline__marker-label">{formatSlotLabel(subMinute)}</span>}
+                    </div>
+                  )
+                })}
                 {renderSlotAction && (
                   <>
                     {isActiveSlot && (
-                      <div className="ds-timeline__slot-action" onClick={e => e.stopPropagation()}>
-                        {renderSlotAction(slotMinute, () => setActiveSlotMinute(null))}
+                      <div className="ds-timeline__slot-action ds-timeline__slot-action--active" onClick={e => e.stopPropagation()}>
+                        {renderSlotAction(activeSlotMinute!, () => setActiveSlotMinute(null))}
                       </div>
                     )}
                     {!isActiveSlot && slotActionTrigger !== 'row' && (
-                      <div className="ds-timeline__slot-action" onClick={e => e.stopPropagation()}>
-                        <button
-                          className="ds-timeline__slot-add"
-                          onPointerDown={e => e.stopPropagation()}
-                          onClick={e => { e.stopPropagation(); setActiveSlotMinute(slotMinute) }}
-                        >
-                          +
-                        </button>
-                      </div>
+                      Array.from({ length: subdivisions }, (_, i) => {
+                        const actionMinute = slotMinute + i * actionInterval
+                        const topPct = (i / subdivisions) * 100
+                        return (
+                          <div
+                            key={actionMinute}
+                            className="ds-timeline__slot-action"
+                            style={{ position: 'absolute', top: `${topPct}%`, height: `${100 / subdivisions}%`, left: 52, right: 0 }}
+                            onMouseEnter={() => setHoveredActionMinute(actionMinute)}
+                            onMouseLeave={() => setHoveredActionMinute(null)}
+                            onClick={e => e.stopPropagation()}
+                          >
+                            {hoveredActionMinute === actionMinute && (
+                              <button
+                                className="ds-timeline__slot-add"
+                                onPointerDown={e => e.stopPropagation()}
+                                onClick={e => { e.stopPropagation(); setActiveSlotMinute(actionMinute) }}
+                              >
+                                +
+                              </button>
+                            )}
+                          </div>
+                        )
+                      })
                     )}
                   </>
                 )}

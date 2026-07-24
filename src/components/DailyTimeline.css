@@ -74,37 +74,87 @@
 .ds-timeline__row {
   display: flex;
   align-items: flex-start;
-  border-bottom: 1px solid #ebebf5;
+  gap: 8px;
   position: relative;
+}
+
+.ds-timeline__row::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 52px;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .ds-timeline__hour-label {
   width: 52px;
   min-width: 52px;
-  padding: 8px 8px 0 16px;
-  font-size: 13px;
-  color: #999aaa;
-  font-weight: 500;
-  line-height: 1;
+  padding: 0 8px 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(26, 26, 46, 0.85);
+  line-height: 14px;
+  margin-top: -7px;
   user-select: none;
 }
 
-.ds-timeline__slot {
-  flex: 1;
-  position: relative;
-  min-height: 0;
+.ds-timeline__hour-label--sub {
+  font-weight: 400;
+  font-size: 11px;
+  color: rgba(142, 142, 147, 0.45);
+}
+
+.ds-timeline__marker {
+  position: absolute;
+  left: 52px;
+  right: 0;
+  height: 0;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+  background: none;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-start;
+}
+
+.ds-timeline__marker-label {
+  width: 52px;
+  min-width: 52px;
+  padding: 0 8px 0 16px;
+  font-size: 11px;
+  color: rgba(142, 142, 147, 0.45);
+  font-weight: 400;
+  line-height: 11px;
+  position: absolute;
+  top: -5px;
+  left: -52px;
+  user-select: none;
+}
+
+.ds-timeline__marker--hover {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.ds-timeline__row:hover .ds-timeline__marker--hover {
+  opacity: 1;
 }
 
 .ds-timeline__slot-action {
   flex: 1;
   display: flex;
-  align-items: flex-start;
-  padding: 6px 8px 0;
+  align-items: center;
+  padding: 0 8px;
   min-width: 0;
 }
 
+.ds-timeline__slot-action--active {
+  padding: 6px 8px 0;
+  align-items: flex-start;
+}
+
 .ds-timeline__slot-add {
-  opacity: 0;
   background: none;
   border: none;
   color: #b0b0c8;
@@ -112,11 +162,7 @@
   line-height: 1;
   cursor: pointer;
   padding: 0 4px;
-  transition: opacity 0.15s, color 0.15s;
-}
-
-.ds-timeline__row:hover .ds-timeline__slot-add {
-  opacity: 1;
+  transition: color 0.15s;
 }
 
 .ds-timeline__slot-add:hover {

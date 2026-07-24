@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.1] - 2026-07-15
+
+### Fixed
+- Add `user-select: none` to timeline root to prevent drag conflicts.
+
+## [0.5.0] - 2026-07-23
+
+### Added
+- `slotActionIntervalMinutes` prop — decouple + button / `renderSlotAction` granularity from grid row interval. Defaults to `slotIntervalMinutes` (backward-compatible). Use this to show finer-grained + buttons (e.g. every 15 min) while keeping wider grid rows (e.g. 30 min).
+
 ## [0.4.0] - 2026-07-10
 
 ### Added

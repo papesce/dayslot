@@ -57,6 +57,13 @@ export interface DailyTimelineProps {
   slotActionTrigger?: 'row' | 'button' | 'both'
   /** Show the current-time indicator line (default true) */
   showCurrentTime?: boolean
-  /** Minutes per slot row. Must divide 60 or be a multiple of 60. Default: 60. */
-  slotIntervalMinutes?: number
+  /** Primary time division — grid rows, hour labels, and border lines.
+   *  E.g. 60 = hourly rows, 30 = half-hour rows, 120 = 2-hour rows.
+   *  Must divide 60 or be a multiple of 60. Default: 60. */
+  slotMinutes?: number
+  /** Show divider lines at subdivision boundaries inside each slot row.
+   *  'none' | 'hover' | 'always'. Default: 'none' when subdivisions=1, 'always' otherwise. */
+  showMarkers?: 'none' | 'hover' | 'always'
+  /** Show time labels on subdivision divider lines. Default: false. */
+  showLabels?: boolean
 }
