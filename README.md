@@ -191,6 +191,20 @@ Receive a `startMinute` and a `close()` callback when the user clicks a slot row
 
 Import `@papesce/dayslot/style.css` for the default theme. All classes use the `ds-timeline` prefix — override any in your own stylesheet.
 
+### CSS custom properties
+
+| Variable | Default | Description |
+|---|---|---|
+| `--ds-event-padding` | `6px 10px` | Padding inside each event card |
+
+Override in your own stylesheet:
+
+```css
+:root {
+  --ds-event-padding: 2px 8px;
+}
+```
+
 ## License
 
 MIT

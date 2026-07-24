@@ -72,4 +72,8 @@ export interface DailyTimelineProps {
   /** Called when the timeline body scrolls. Receives the current scrollTop.
    *  Useful for dismissing overlay UI (menus, pickers) on scroll. */
   onScroll?: (scrollTop: number) => void
+  /** Override the padding inside event cards (CSS value, e.g. '0', '4px 8px').
+   *  Sets the --ds-event-padding custom property via inline style, which
+   *  always wins over the library stylesheet regardless of load order. */
+  eventPadding?: string
 }

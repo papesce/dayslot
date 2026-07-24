@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-07-24
+
+### Added
+- `eventPadding` prop — override event card padding via an inline CSS custom property (`--ds-event-padding`), eliminating the need for `!important` CSS overrides caused by stylesheet load-order issues.
+
 ## [0.5.3] - 2026-07-24
 
 ### Changed
