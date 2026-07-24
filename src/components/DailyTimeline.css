@@ -1,6 +1,12 @@
 .ds-timeline {
   --ds-hour-col: 52px;
   --ds-event-padding: 6px 10px;
+
+  /* line theming */
+  --ds-line-color: rgba(0, 0, 0, 0.15);
+  --ds-line-width: 1px;
+  --ds-marker-color: rgba(0, 0, 0, 0.08);
+  --ds-marker-width: 0.5px;
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
@@ -86,8 +92,8 @@
   bottom: 0;
   left: var(--ds-hour-col);
   right: 0;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.15);
+  height: var(--ds-line-width);
+  background: var(--ds-line-color);
 }
 
 .ds-timeline__hour-label {
@@ -113,7 +119,7 @@
   left: var(--ds-hour-col);
   right: 0;
   height: 0;
-  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+  border-top: var(--ds-marker-width) solid var(--ds-marker-color);
   background: none;
   pointer-events: none;
   display: flex;

@@ -69,7 +69,7 @@ function DailyTimelineInner({
   showMarkers: showMarkersProp,
   showLabels = false,
   onScroll: onScrollProp,
-  eventPadding,
+  customProperties,
 }: DailyTimelineProps) {
   const slotMinutes = slotMinutesProp != null && slotMinutesProp > 0 ? slotMinutesProp : 60
   if (60 % slotMinutes !== 0 && slotMinutes % 60 !== 0) {
@@ -313,7 +313,7 @@ function DailyTimelineInner({
   }
 
   return (
-    <div className={`ds-timeline ${className}`} style={{ ...(height ? { height } : {}), ...(eventPadding !== undefined ? { "--ds-event-padding": eventPadding } : {}) }}>
+    <div className={`ds-timeline ${className}`} style={{ ...(height ? { height } : {}), ...customProperties }}>
       <div className="ds-timeline__header">
         <span className="ds-timeline__header-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

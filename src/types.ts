@@ -72,8 +72,10 @@ export interface DailyTimelineProps {
   /** Called when the timeline body scrolls. Receives the current scrollTop.
    *  Useful for dismissing overlay UI (menus, pickers) on scroll. */
   onScroll?: (scrollTop: number) => void
-  /** Override the padding inside event cards (CSS value, e.g. '0', '4px 8px').
-   *  Sets the --ds-event-padding custom property via inline style, which
-   *  always wins over the library stylesheet regardless of load order. */
-  eventPadding?: string
+  /** Override any CSS custom property on the timeline root via inline styles.
+   *  Keys must start with '--'. Inline styles always win over the library
+   *  stylesheet, so this solves load-order issues without `!important`.
+   *
+   *  Example: `customProperties={{ "--ds-line-color": "rgba(0,0,0,0.03)" }}` */
+  customProperties?: Record<`--${string}`, string>
 }

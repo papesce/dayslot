@@ -8,7 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [0.6.0] - 2026-07-24
 
 ### Added
-- `eventPadding` prop — override event card padding via an inline CSS custom property (`--ds-event-padding`), eliminating the need for `!important` CSS overrides caused by stylesheet load-order issues.
+- `customProperties` prop — override any CSS custom property on the timeline root via inline styles (e.g. `customProperties={{ "--ds-line-color": "rgba(0,0,0,0.03)" }}`). Keys must start with `--`. Solves load-order issues without `!important` for any variable.
+- CSS custom properties for line theming: `--ds-line-color`, `--ds-line-width`, `--ds-marker-color`, `--ds-marker-width` — style hour lines and subdivision markers without `!important` overrides.
+
+### Removed
+- `eventPadding` prop — use `customProperties={{ "--ds-event-padding": "..." }}` instead.
 
 ## [0.5.3] - 2026-07-24
 
