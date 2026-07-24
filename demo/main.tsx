@@ -364,6 +364,24 @@ function App() {
   const [draggingOffsetY, setDraggingOffsetY] = useState(0)
   const tlRef = useRef<DailyTimelineHandle>(null)
 
+  const [rightPanelWidth, setRightPanelWidth] = useState(320)
+  const resizingRef = useRef(false)
+
+  function startPanelResize(e: React.PointerEvent) {
+    e.preventDefault()
+    resizingRef.current = true
+    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+  }
+  function onPanelResizeMove(e: React.PointerEvent) {
+    if (!resizingRef.current) return
+    const containerRight = (e.currentTarget as HTMLElement).getBoundingClientRect().right
+    const newWidth = Math.max(240, Math.min(520, containerRight - e.clientX))
+    setRightPanelWidth(newWidth)
+  }
+  function stopPanelResize() {
+    resizingRef.current = false
+  }
+
   function addLog(type: LogEntry['type'], message: string) {
     setLog(prev => [{ id: logId++, type, message }, ...prev].slice(0, 40))
   }
@@ -432,7 +450,12 @@ function App() {
       </div>
 
       {/* two-column layout */}
-      <div style={{ display: 'flex', gap: 0, height: 'calc(100vh - 53px)' }}>
+      <div
+        style={{ display: 'flex', gap: 0, height: 'calc(100vh - 53px)' }}
+        onPointerMove={onPanelResizeMove}
+        onPointerUp={stopPanelResize}
+        onPointerLeave={stopPanelResize}
+      >
 
         {/* left: timeline (dominant) */}
         <div style={{ flex: '1 1 0', minWidth: 0, padding: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -485,9 +508,24 @@ function App() {
           </div>
         </div>
 
+        {/* resize handle */}
+        <div
+          onPointerDown={startPanelResize}
+          style={{
+            width: 5, flexShrink: 0, cursor: 'col-resize', background: 'transparent',
+            borderLeft: '1px solid #e4e4f0', position: 'relative', zIndex: 10,
+          }}
+        >
+          <div style={{
+            position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+            width: 3, height: 28, borderRadius: 2, background: '#d0d0e0',
+            pointerEvents: 'none',
+          }} />
+        </div>
+
         {/* right: props explorer + log */}
         <div style={{
-          width: 320, flexShrink: 0, borderLeft: '1px solid #e4e4f0', background: '#fff',
+          width: rightPanelWidth, flexShrink: 0, background: '#fff',
           display: 'flex', flexDirection: 'column', overflowY: 'auto',
         }}>
           {/* props panel */}

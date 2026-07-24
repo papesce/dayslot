@@ -195,13 +195,22 @@ Import `@papesce/dayslot/style.css` for the default theme. All classes use the `
 
 | Variable | Default | Description |
 |---|---|---|
+| `--ds-hour-col` | `52px` | Width of the time-axis gutter (hour labels) |
 | `--ds-event-padding` | `6px 10px` | Padding inside each event card |
+| `--ds-event-gap` | `2px` | Gap between event cards |
+| `--ds-line-color` | `rgba(0,0,0,0.15)` | Color of hour gridlines |
+| `--ds-line-width` | `1px` | Width of hour gridlines |
+| `--ds-marker-color` | `rgba(0,0,0,0.08)` | Color of subdivision markers |
+| `--ds-marker-width` | `0.5px` | Width of subdivision markers |
+| `--ds-slot-action-z-index` | `10` | Z-index of the slot action overlay |
+| `--ds-slot-action-bg` | `#fff` | Background of the slot action overlay |
 
 Override in your own stylesheet:
 
 ```css
-:root {
-  --ds-event-padding: 2px 8px;
+.ds-timeline {
+  --ds-event-gap: 0;
+  --ds-line-color: rgba(0,0,0,0.03);
 }
 ```
 

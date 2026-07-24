@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.2] - 2026-07-24
+
+### Added
+- `--ds-event-gap` CSS custom property — controls the gap between event cards (default `2px`). Override via `.ds-timeline { --ds-event-gap: 0; }` for flush cards.
+- `--ds-slot-action-z-index` CSS custom property — controls the z-index of the slot action overlay (default `10`).
+- `--ds-slot-action-bg` CSS custom property — controls the background of the slot action overlay (default `#fff`).
+
+### Fixed
+- Slot action overlay positioning — moved from per-row inline rendering to a single absolute-positioned overlay, fixing z-index layering issues when the overlay spans across slot rows.
+
 ## [0.6.0] - 2026-07-24
 
 ### Added

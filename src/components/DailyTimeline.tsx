@@ -362,21 +362,6 @@ function DailyTimelineInner({
                 })}
                 {renderSlotAction && (
                   <>
-                    {isActiveSlot && activeSlotMinute != null && (
-                      <div
-                        className="ds-timeline__slot-action ds-timeline__slot-action--active"
-                        style={{
-                          position: 'absolute',
-                          top: `${((activeSlotMinute - slotMinute) / slotMinutes) * 100}%`,
-                          height: `${100 / subdivisions}%`,
-                          left: 'var(--ds-hour-col)',
-                          right: 0,
-                        }}
-                        onClick={e => e.stopPropagation()}
-                      >
-                        {renderSlotAction(activeSlotMinute, () => setActiveSlotMinute(null))}
-                      </div>
-                    )}
                     {!isActiveSlot && slotActionTrigger !== 'row' && (
                       Array.from({ length: subdivisions }, (_, i) => {
                         const actionMinute = slotMinute + i * actionInterval
@@ -432,8 +417,8 @@ function DailyTimelineInner({
               />
             )}
             {layoutEvents.map(event => {
-              const top = ((event.startMinute - timelineStartMinute) / 60) * hourHeight
-              const height = Math.max((event.durationMinutes / 60) * hourHeight, 32)
+              const rawTop = ((event.startMinute - timelineStartMinute) / 60) * hourHeight
+              const rawHeight = Math.max((event.durationMinutes / 60) * hourHeight, 32)
               const colWidth = 100 / event.totalColumns
               const left = `${event.column * colWidth}%`
               const width = `calc(${colWidth}% - ${event.totalColumns > 1 ? 4 : 8}px)`
@@ -444,7 +429,11 @@ function DailyTimelineInner({
                 <div
                   key={event.id}
                   className={`ds-timeline__event${isDragging ? ' ds-timeline__event--dragging' : ''}`}
-                  style={{ top, height, left, width, background: bg }}
+                  style={{
+                    top: `calc(${rawTop}px + var(--ds-event-gap))`,
+                    height: `calc(${rawHeight}px - var(--ds-event-gap))`,
+                    left, width, background: bg,
+                  }}
                   onPointerDown={e => startDrag(e, 'move', event)}
                   onClick={() => { if (!didDrag.current) onEventClick?.(event) }}
                 >
@@ -496,6 +485,27 @@ function DailyTimelineInner({
               )
             })}
           </div>
+
+          {renderSlotAction && activeSlotMinute != null && (
+            <div
+              className="ds-timeline__slot-action-overlay"
+              style={{
+                position: 'absolute',
+                top: ((activeSlotMinute - timelineStartMinute) / 60) * hourHeight,
+                minHeight: (slotMinutes / subdivisions / 60) * hourHeight,
+                left: 'var(--ds-hour-col)',
+                right: 0,
+              }}
+              onClick={() => setActiveSlotMinute(null)}
+            >
+              <div
+                className="ds-timeline__slot-action ds-timeline__slot-action--active"
+                onClick={e => e.stopPropagation()}
+              >
+                {renderSlotAction(activeSlotMinute, () => setActiveSlotMinute(null))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

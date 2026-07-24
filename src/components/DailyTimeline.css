@@ -2,6 +2,13 @@
   --ds-hour-col: 52px;
   --ds-event-padding: 6px 10px;
 
+  /* event gap */
+  --ds-event-gap: 2px;
+
+  /* slot action */
+  --ds-slot-action-z-index: 10;
+  --ds-slot-action-bg: #fff;
+
   /* line theming */
   --ds-line-color: rgba(0, 0, 0, 0.15);
   --ds-line-width: 1px;
@@ -149,6 +156,12 @@
   opacity: 1;
 }
 
+.ds-timeline__slot-action-overlay {
+  position: absolute;
+  z-index: var(--ds-slot-action-z-index);
+  background: var(--ds-slot-action-bg);
+}
+
 .ds-timeline__slot-action {
   flex: 1;
   display: flex;
@@ -160,7 +173,7 @@
 .ds-timeline__slot-action--active {
   padding: 0 8px;
   align-items: flex-start;
-  z-index: 5;
+  z-index: var(--ds-slot-action-z-index);
 }
 
 .ds-timeline__slot-add {
